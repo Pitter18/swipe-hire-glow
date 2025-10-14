@@ -1,17 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SwipeCard, SwipeButtons } from "@/components/SwipeCard";
 import { JobCard } from "@/components/JobCard";
 import { CandidateCard } from "@/components/CandidateCard";
 import { ModeToggle } from "@/components/ModeToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { AccountMenu } from "@/components/AccountMenu";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles } from "lucide-react";
 
 const Index = () => {
-  const [mode, setMode] = useState<"seeker" | "recruiter">("seeker");
+  const [mode, setMode] = useState<"seeker" | "recruiter">(() => {
+    const saved = localStorage.getItem("userMode");
+    return (saved as "seeker" | "recruiter") || "seeker";
+  });
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
   const [currentCandidateIndex, setCurrentCandidateIndex] = useState(0);
   const { toast } = useToast();
+
+  useEffect(() => {
+    localStorage.setItem("userMode", mode);
+  }, [mode]);
 
   const handleSwipeLeft = () => {
     toast({
@@ -52,7 +61,13 @@ const Index = () => {
             JobSwipe
           </h1>
         </div>
-        <ModeToggle mode={mode} onToggle={setMode} />
+        <div className="flex items-center gap-4">
+          <ModeToggle mode={mode} onToggle={setMode} />
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <AccountMenu />
+          </div>
+        </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-8">
