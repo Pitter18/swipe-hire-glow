@@ -1,4 +1,5 @@
 import { User, Settings, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,12 +19,15 @@ interface AccountMenuProps {
 }
 
 export const AccountMenu = ({ user }: AccountMenuProps) => {
+  const navigate = useNavigate();
+
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error("Failed to sign out");
     } else {
       toast.success("Signed out successfully");
+      navigate("/auth");
     }
   };
 
