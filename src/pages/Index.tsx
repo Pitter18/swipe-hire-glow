@@ -3,11 +3,13 @@ import { SwipeCard, SwipeButtons } from "@/components/SwipeCard";
 import { JobCard } from "@/components/JobCard";
 import { CandidateCard } from "@/components/CandidateCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ModeToggle } from "@/components/ModeToggle";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Briefcase, Users } from "lucide-react";
 
 const Index = () => {
+  const [mode, setMode] = useState<"seeker" | "recruiter">("seeker");
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
   const [currentCandidateIndex, setCurrentCandidateIndex] = useState(0);
   const { toast } = useToast();
@@ -60,70 +62,71 @@ const Index = () => {
             JobSwipe
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <ModeToggle mode={mode} onToggle={setMode} />
           <ThemeToggle />
         </div>
       </header>
 
       <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-7xl grid lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Job Seeker View */}
-          <div className="w-full max-w-md mx-auto">
-            <div className="mb-6 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Briefcase className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-semibold text-foreground">Jobs for You</h2>
+        <div className="w-full max-w-md">
+          {mode === "seeker" ? (
+            <>
+              <div className="mb-6 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Briefcase className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold text-foreground">Jobs for You</h2>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {mockJobs.length - currentJobIndex} jobs remaining
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {mockJobs.length - currentJobIndex} jobs remaining
-              </p>
-            </div>
 
-            <SwipeCard
-              onSwipeLeft={handleJobSwipeLeft}
-              onSwipeRight={handleJobSwipeRight}
-              key={`job-${currentJobIndex}`}
-            >
-              <JobCard {...currentJob} />
-            </SwipeCard>
+              <SwipeCard
+                onSwipeLeft={handleJobSwipeLeft}
+                onSwipeRight={handleJobSwipeRight}
+                key={`job-${currentJobIndex}`}
+              >
+                <JobCard {...currentJob} />
+              </SwipeCard>
 
-            <SwipeButtons onReject={handleJobSwipeLeft} onAccept={handleJobSwipeRight} />
+              <SwipeButtons onReject={handleJobSwipeLeft} onAccept={handleJobSwipeRight} />
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Swipe right to match • Swipe left to pass
-              </p>
-            </div>
-          </div>
-
-          {/* Recruiter View */}
-          <div className="w-full max-w-md mx-auto">
-            <div className="mb-6 text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Users className="w-5 h-5 text-primary" />
-                <h2 className="text-xl font-semibold text-foreground">Candidates</h2>
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Swipe right to match • Swipe left to pass
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                {mockCandidates.length - currentCandidateIndex} candidates remaining
-              </p>
-            </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-6 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold text-foreground">Candidates</h2>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {mockCandidates.length - currentCandidateIndex} candidates remaining
+                </p>
+              </div>
 
-            <SwipeCard
-              onSwipeLeft={handleCandidateSwipeLeft}
-              onSwipeRight={handleCandidateSwipeRight}
-              key={`candidate-${currentCandidateIndex}`}
-            >
-              <CandidateCard {...currentCandidate} />
-            </SwipeCard>
+              <SwipeCard
+                onSwipeLeft={handleCandidateSwipeLeft}
+                onSwipeRight={handleCandidateSwipeRight}
+                key={`candidate-${currentCandidateIndex}`}
+              >
+                <CandidateCard {...currentCandidate} />
+              </SwipeCard>
 
-            <SwipeButtons onReject={handleCandidateSwipeLeft} onAccept={handleCandidateSwipeRight} />
+              <SwipeButtons onReject={handleCandidateSwipeLeft} onAccept={handleCandidateSwipeRight} />
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Swipe right to shortlist • Swipe left to pass
-              </p>
-            </div>
-          </div>
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Swipe right to shortlist • Swipe left to pass
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
