@@ -1,95 +1,17 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { SwipeCard, SwipeButtons } from "@/components/SwipeCard";
 import { JobCard } from "@/components/JobCard";
 import { CandidateCard } from "@/components/CandidateCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { AccountMenu } from "@/components/AccountMenu";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Briefcase, Users } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import type { User } from "@supabase/supabase-js";
-import { toast as sonnerToast } from "sonner";
 
 const Index = () => {
-  const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<"seeker" | "recruiter">("seeker");
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
   const [currentCandidateIndex, setCurrentCandidateIndex] = useState(0);
   const { toast } = useToast();
-
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-
-      setUser(session.user);
-
-      // Check if user has a role in the database
-      const { data: userRoles, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-
-      if (error && error.code !== "PGRST116") {
-        console.error("Error fetching user role:", error);
-        sonnerToast.error("Failed to load user data");
-        return;
-      }
-
-      // Check if there's a pending role from OAuth signup
-      const pendingRole = localStorage.getItem("pendingUserRole");
-      
-      if (!userRoles && pendingRole) {
-        // Create the role for the user
-        const { error: insertError } = await supabase
-          .from("user_roles")
-          .insert({
-            user_id: session.user.id,
-            role: pendingRole as "job_seeker" | "recruiter",
-          });
-
-        if (insertError) {
-          console.error("Error creating user role:", insertError);
-          sonnerToast.error("Failed to set user role");
-        } else {
-          setMode(pendingRole === "job_seeker" ? "seeker" : "recruiter");
-          localStorage.removeItem("pendingUserRole");
-        }
-      } else if (userRoles) {
-        setMode(userRoles.role === "job_seeker" ? "seeker" : "recruiter");
-      }
-    } catch (error) {
-      console.error("Auth check error:", error);
-      navigate("/auth");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        navigate("/auth");
-      } else if (event === "SIGNED_IN" && session) {
-        setUser(session.user);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   const handleSwipeLeft = () => {
     toast({
@@ -119,17 +41,6 @@ const Index = () => {
   const currentJob = mockJobs[currentJobIndex];
   const currentCandidate = mockCandidates[currentCandidateIndex];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="px-6 py-6 flex items-center justify-between border-b border-border">
@@ -158,7 +69,6 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <AccountMenu user={user} />
         </div>
       </header>
 
