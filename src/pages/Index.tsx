@@ -4,7 +4,6 @@ import { SwipeCard, SwipeButtons } from "@/components/SwipeCard";
 import { JobCard } from "@/components/JobCard";
 import { CandidateCard } from "@/components/CandidateCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ModeToggle } from "@/components/ModeToggle";
 import { AccountMenu } from "@/components/AccountMenu";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
@@ -13,25 +12,53 @@ import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 
 const Index = () => {
-  const [mode, setMode] = useState<"seeker" | "recruiter">("seeker");
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
   const [currentCandidateIndex, setCurrentCandidateIndex] = useState(0);
   const [user, setUser] = useState<User | null>(null);
+  const [userRole, setUserRole] = useState<"job_seeker" | "recruiter" | null>(null);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
+        
+        // Fetch user role
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id)
+          .single();
+        
+        if (roleData) {
+          setUserRole(roleData.role as "job_seeker" | "recruiter");
+        }
       } else {
         navigate("/auth");
       }
-    });
+      setLoading(false);
+    };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         setUser(session.user);
+        
+        setTimeout(async () => {
+          const { data: roleData } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id)
+            .single();
+          
+          if (roleData) {
+            setUserRole(roleData.role as "job_seeker" | "recruiter");
+          }
+        }, 0);
       } else {
         navigate("/auth");
       }
@@ -77,6 +104,21 @@ const Index = () => {
   const currentJob = mockJobs[currentJobIndex];
   const currentCandidate = mockCandidates[currentCandidateIndex];
 
+  if (loading || !userRole) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-glow mx-auto mb-4 animate-pulse">
+            <Sparkles className="w-7 h-7 text-white" />
+          </div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isRecruiter = userRole === "recruiter";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <header className="px-6 py-6 flex items-center justify-between border-b border-border">
@@ -89,7 +131,19 @@ const Index = () => {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <ModeToggle mode={mode} onToggle={setMode} />
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+            {isRecruiter ? (
+              <>
+                <Users className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Recruiter</span>
+              </>
+            ) : (
+              <>
+                <Briefcase className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">Job Seeker</span>
+              </>
+            )}
+          </div>
           <ThemeToggle />
           <AccountMenu userEmail={user?.email} />
         </div>
@@ -97,35 +151,7 @@ const Index = () => {
 
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
-          {mode === "seeker" ? (
-            <>
-              <div className="mb-6 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Briefcase className="w-5 h-5 text-primary" />
-                  <h2 className="text-xl font-semibold text-foreground">Jobs for You</h2>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {mockJobs.length - currentJobIndex} jobs remaining
-                </p>
-              </div>
-
-              <SwipeCard
-                onSwipeLeft={handleJobSwipeLeft}
-                onSwipeRight={handleJobSwipeRight}
-                key={`job-${currentJobIndex}`}
-              >
-                <JobCard {...currentJob} />
-              </SwipeCard>
-
-              <SwipeButtons onReject={handleJobSwipeLeft} onAccept={handleJobSwipeRight} />
-
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Swipe right to match • Swipe left to pass
-                </p>
-              </div>
-            </>
-          ) : (
+          {isRecruiter ? (
             <>
               <div className="mb-6 text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
@@ -150,6 +176,34 @@ const Index = () => {
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
                   Swipe right to shortlist • Swipe left to pass
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="mb-6 text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Briefcase className="w-5 h-5 text-primary" />
+                  <h2 className="text-xl font-semibold text-foreground">Jobs for You</h2>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {mockJobs.length - currentJobIndex} jobs remaining
+                </p>
+              </div>
+
+              <SwipeCard
+                onSwipeLeft={handleJobSwipeLeft}
+                onSwipeRight={handleJobSwipeRight}
+                key={`job-${currentJobIndex}`}
+              >
+                <JobCard {...currentJob} />
+              </SwipeCard>
+
+              <SwipeButtons onReject={handleJobSwipeLeft} onAccept={handleJobSwipeRight} />
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Swipe right to match • Swipe left to pass
                 </p>
               </div>
             </>

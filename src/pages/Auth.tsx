@@ -5,14 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Briefcase, Users } from "lucide-react";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [role, setRole] = useState<"seeker" | "recruiter">("seeker");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -51,7 +53,7 @@ const Auth = () => {
           description: "Logged in successfully!",
         });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -63,6 +65,18 @@ const Auth = () => {
         });
 
         if (error) throw error;
+
+        // Insert user role
+        if (data.user) {
+          const { error: roleError } = await supabase
+            .from("user_roles")
+            .insert({
+              user_id: data.user.id,
+              role: (role === "seeker" ? "job_seeker" : "recruiter") as "job_seeker" | "recruiter",
+            });
+
+          if (roleError) throw roleError;
+        }
 
         toast({
           title: "Success",
@@ -101,17 +115,38 @@ const Auth = () => {
         <CardContent>
           <form onSubmit={handleAuth} className="space-y-4">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="John Doe"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label>I am a</Label>
+                  <RadioGroup value={role} onValueChange={(value: "seeker" | "recruiter") => setRole(value)}>
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer">
+                      <RadioGroupItem value="seeker" id="seeker" />
+                      <Label htmlFor="seeker" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <Briefcase className="w-4 h-4" />
+                        Job Seeker
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer">
+                      <RadioGroupItem value="recruiter" id="recruiter" />
+                      <Label htmlFor="recruiter" className="flex items-center gap-2 cursor-pointer flex-1">
+                        <Users className="w-4 h-4" />
+                        Recruiter
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </>
             )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
