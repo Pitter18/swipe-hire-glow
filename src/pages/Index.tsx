@@ -1,18 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { SwipeCard, SwipeButtons } from "@/components/SwipeCard";
 import { JobCard } from "@/components/JobCard";
 import { CandidateCard } from "@/components/CandidateCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ModeToggle } from "@/components/ModeToggle";
+import { AccountMenu } from "@/components/AccountMenu";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Briefcase, Users } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 const Index = () => {
   const [mode, setMode] = useState<"seeker" | "recruiter">("seeker");
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
   const [currentCandidateIndex, setCurrentCandidateIndex] = useState(0);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        navigate("/auth");
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
 
   const handleJobSwipeLeft = () => {
     toast({
@@ -65,6 +91,7 @@ const Index = () => {
         <div className="flex items-center gap-4">
           <ModeToggle mode={mode} onToggle={setMode} />
           <ThemeToggle />
+          <AccountMenu userEmail={user?.email} />
         </div>
       </header>
 
