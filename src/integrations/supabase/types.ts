@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      matches: {
+        Row: {
+          created_at: string
+          id: string
+          job_seeker_id: string
+          recruiter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_seeker_id: string
+          recruiter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_seeker_id?: string
+          recruiter_id?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          match_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          match_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          match_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -7,9 +7,10 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { AccountMenu } from "@/components/AccountMenu";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Briefcase, Users } from "lucide-react";
+import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
@@ -76,11 +77,21 @@ const Index = () => {
     setCurrentJobIndex((prev) => (prev + 1) % mockJobs.length);
   };
 
-  const handleJobSwipeRight = () => {
-    toast({
-      title: "It's a Match! ✨",
-      description: "Job saved to your list",
-    });
+  const handleJobSwipeRight = async () => {
+    // Create a match with a mock recruiter (in real app, this would be the job poster)
+    if (user) {
+      const { error } = await supabase.from("matches").insert([{
+        recruiter_id: String(mockJobs[currentJobIndex].id),
+        job_seeker_id: user.id,
+      }]);
+
+      if (!error) {
+        toast({
+          title: "It's a Match! ✨",
+          description: "You can now chat with the recruiter",
+        });
+      }
+    }
     setCurrentJobIndex((prev) => (prev + 1) % mockJobs.length);
   };
 
@@ -93,11 +104,21 @@ const Index = () => {
     setCurrentCandidateIndex((prev) => (prev + 1) % mockCandidates.length);
   };
 
-  const handleCandidateSwipeRight = () => {
-    toast({
-      title: "It's a Match! ✨",
-      description: "Candidate shortlisted",
-    });
+  const handleCandidateSwipeRight = async () => {
+    // Create a match with the candidate
+    if (user) {
+      const { error } = await supabase.from("matches").insert([{
+        recruiter_id: user.id,
+        job_seeker_id: String(mockCandidates[currentCandidateIndex].id),
+      }]);
+
+      if (!error) {
+        toast({
+          title: "It's a Match! ✨",
+          description: "You can now chat with the candidate",
+        });
+      }
+    }
     setCurrentCandidateIndex((prev) => (prev + 1) % mockCandidates.length);
   };
 
@@ -131,6 +152,15 @@ const Index = () => {
           </h1>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/matches")}
+            className="flex items-center gap-2"
+          >
+            <MessageCircle className="w-5 h-5" />
+            <span className="hidden sm:inline">Matches</span>
+          </Button>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             {isRecruiter ? (
               <>
