@@ -5,6 +5,7 @@ import { JobCard } from "@/components/JobCard";
 import { CandidateCard } from "@/components/CandidateCard";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { AccountMenu } from "@/components/AccountMenu";
+import { MatchNotification } from "@/components/MatchNotification";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
@@ -18,6 +19,11 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<"job_seeker" | "recruiter" | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showMatchDialog, setShowMatchDialog] = useState(false);
+  const [matchData, setMatchData] = useState<{
+    matchId: string;
+    person: any;
+  } | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -80,16 +86,27 @@ const Index = () => {
   const handleJobSwipeRight = async () => {
     // Create a match with a mock recruiter (in real app, this would be the job poster)
     if (user) {
-      const { error } = await supabase.from("matches").insert([{
-        recruiter_id: String(mockJobs[currentJobIndex].id),
-        job_seeker_id: user.id,
-      }]);
+      const { data, error } = await supabase
+        .from("matches")
+        .insert([{
+          recruiter_id: String(mockJobs[currentJobIndex].id),
+          job_seeker_id: user.id,
+        }])
+        .select()
+        .single();
 
-      if (!error) {
-        toast({
-          title: "It's a Match! ✨",
-          description: "You can now chat with the recruiter",
+      if (!error && data) {
+        const currentJob = mockJobs[currentJobIndex];
+        setMatchData({
+          matchId: data.id,
+          person: {
+            name: currentJob.company,
+            title: currentJob.title,
+            company: currentJob.company,
+            skills: currentJob.skills,
+          },
         });
+        setShowMatchDialog(true);
       }
     }
     setCurrentJobIndex((prev) => (prev + 1) % mockJobs.length);
@@ -107,16 +124,27 @@ const Index = () => {
   const handleCandidateSwipeRight = async () => {
     // Create a match with the candidate
     if (user) {
-      const { error } = await supabase.from("matches").insert([{
-        recruiter_id: user.id,
-        job_seeker_id: String(mockCandidates[currentCandidateIndex].id),
-      }]);
+      const { data, error } = await supabase
+        .from("matches")
+        .insert([{
+          recruiter_id: user.id,
+          job_seeker_id: String(mockCandidates[currentCandidateIndex].id),
+        }])
+        .select()
+        .single();
 
-      if (!error) {
-        toast({
-          title: "It's a Match! ✨",
-          description: "You can now chat with the candidate",
+      if (!error && data) {
+        const currentCandidate = mockCandidates[currentCandidateIndex];
+        setMatchData({
+          matchId: data.id,
+          person: {
+            name: currentCandidate.name,
+            title: currentCandidate.title,
+            email: currentCandidate.email,
+            skills: currentCandidate.skills,
+          },
         });
+        setShowMatchDialog(true);
       }
     }
     setCurrentCandidateIndex((prev) => (prev + 1) % mockCandidates.length);
@@ -142,6 +170,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {matchData && (
+        <MatchNotification
+          open={showMatchDialog}
+          onOpenChange={setShowMatchDialog}
+          matchedPerson={matchData.person}
+          matchId={matchData.matchId}
+        />
+      )}
+      
       <header className="px-6 py-6 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-glow">
