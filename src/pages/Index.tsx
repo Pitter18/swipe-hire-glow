@@ -8,7 +8,7 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { MatchNotification } from "@/components/MatchNotification";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
+import { Sparkles, Briefcase, Users, MessageCircle, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -197,6 +197,15 @@ const Index = () => {
           >
             <MessageCircle className="w-5 h-5" />
             <span className="hidden sm:inline">Matches</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-2"
+          >
+            <UserCircle className="w-5 h-5" />
+            <span className="hidden sm:inline">Profile</span>
           </Button>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             {isRecruiter ? (

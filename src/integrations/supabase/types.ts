@@ -70,26 +70,50 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
+          company: string | null
           created_at: string
           email: string
+          experience: string | null
           full_name: string | null
           id: string
+          job_title: string | null
+          linkedin_url: string | null
+          location: string | null
+          phone: string | null
+          skills: string[] | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
+          company?: string | null
           created_at?: string
           email: string
+          experience?: string | null
           full_name?: string | null
           id: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          phone?: string | null
+          skills?: string[] | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
+          company?: string | null
           created_at?: string
           email?: string
+          experience?: string | null
           full_name?: string | null
           id?: string
+          job_title?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          phone?: string | null
+          skills?: string[] | null
           updated_at?: string
         }
         Relationships: []
