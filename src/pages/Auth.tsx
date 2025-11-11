@@ -41,17 +41,19 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) throw error;
 
-        toast({
-          title: "Success",
-          description: "Logged in successfully!",
-        });
+        if (data.user) {
+          toast({
+            title: "Success",
+            description: "Logged in successfully!",
+          });
+        }
       } else {
         const { data, error } = await supabase.auth.signUp({
           email,
@@ -75,18 +77,22 @@ const Auth = () => {
               role: (role === "seeker" ? "job_seeker" : "recruiter") as "job_seeker" | "recruiter",
             });
 
-          if (roleError) throw roleError;
-        }
+          if (roleError) {
+            console.error("Role insertion error:", roleError);
+            throw new Error("Failed to set user role. Please try again.");
+          }
 
-        toast({
-          title: "Success",
-          description: "Account created successfully!",
-        });
+          toast({
+            title: "Success",
+            description: "Account created successfully!",
+          });
+        }
       }
     } catch (error: any) {
+      console.error("Authentication error:", error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
