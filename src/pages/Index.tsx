@@ -8,7 +8,7 @@ import { AccountMenu } from "@/components/AccountMenu";
 import { MatchNotification } from "@/components/MatchNotification";
 import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Briefcase, Users, MessageCircle, UserCircle } from "lucide-react";
+import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ const Index = () => {
     matchId: string;
     person: any;
   } | null>(null);
+  const [candidates, setCandidates] = useState<any[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -42,6 +43,10 @@ const Index = () => {
         
         if (roleData) {
           setUserRole(roleData.role as "job_seeker" | "recruiter");
+          // Load real candidates if user is a recruiter
+          if (roleData.role === "recruiter") {
+            loadCandidates();
+          }
         }
       } else {
         navigate("/auth");
@@ -64,6 +69,9 @@ const Index = () => {
           
           if (roleData) {
             setUserRole(roleData.role as "job_seeker" | "recruiter");
+            if (roleData.role === "recruiter") {
+              loadCandidates();
+            }
           }
         }, 0);
       } else {
@@ -73,6 +81,39 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const loadCandidates = async () => {
+    try {
+      // Get all job seekers' profiles
+      const { data: jobSeekers } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "job_seeker");
+
+      if (jobSeekers && jobSeekers.length > 0) {
+        const userIds = jobSeekers.map((js) => js.user_id);
+        
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("*")
+          .in("id", userIds);
+
+        if (profiles && profiles.length > 0) {
+          setCandidates(profiles);
+        } else {
+          // Fallback to mock data if no profiles exist
+          setCandidates(mockCandidates);
+        }
+      } else {
+        // Fallback to mock data if no job seekers exist
+        setCandidates(mockCandidates);
+      }
+    } catch (error) {
+      console.error("Error loading candidates:", error);
+      // Fallback to mock data on error
+      setCandidates(mockCandidates);
+    }
+  };
 
   const handleJobSwipeLeft = () => {
     toast({
@@ -123,35 +164,39 @@ const Index = () => {
 
   const handleCandidateSwipeRight = async () => {
     // Create a match with the candidate
+    const candidatesList = candidates.length > 0 ? candidates : mockCandidates;
     if (user) {
+      const currentCandidate = candidatesList[currentCandidateIndex];
+      const candidateId = currentCandidate.id || String(currentCandidate.id);
+      
       const { data, error } = await supabase
         .from("matches")
         .insert([{
           recruiter_id: user.id,
-          job_seeker_id: String(mockCandidates[currentCandidateIndex].id),
+          job_seeker_id: candidateId,
         }])
         .select()
         .single();
 
       if (!error && data) {
-        const currentCandidate = mockCandidates[currentCandidateIndex];
         setMatchData({
           matchId: data.id,
           person: {
-            name: currentCandidate.name,
-            title: currentCandidate.title,
+            name: currentCandidate.full_name || currentCandidate.name,
+            title: currentCandidate.job_title || currentCandidate.title,
             email: currentCandidate.email,
-            skills: currentCandidate.skills,
+            skills: currentCandidate.skills || [],
           },
         });
         setShowMatchDialog(true);
       }
     }
-    setCurrentCandidateIndex((prev) => (prev + 1) % mockCandidates.length);
+    setCurrentCandidateIndex((prev) => (prev + 1) % candidatesList.length);
   };
 
   const currentJob = mockJobs[currentJobIndex];
-  const currentCandidate = mockCandidates[currentCandidateIndex];
+  const candidatesList = candidates.length > 0 ? candidates : mockCandidates;
+  const currentCandidate = candidatesList[currentCandidateIndex];
 
   if (loading || !userRole) {
     return (
@@ -198,15 +243,6 @@ const Index = () => {
             <MessageCircle className="w-5 h-5" />
             <span className="hidden sm:inline">Matches</span>
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/profile")}
-            className="flex items-center gap-2"
-          >
-            <UserCircle className="w-5 h-5" />
-            <span className="hidden sm:inline">Profile</span>
-          </Button>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             {isRecruiter ? (
               <>
@@ -221,7 +257,11 @@ const Index = () => {
             )}
           </div>
           <ThemeToggle />
-          <AccountMenu userEmail={user?.email} />
+          <AccountMenu 
+            userEmail={user?.email} 
+            userRole={userRole}
+            onProfileUpdate={loadCandidates}
+          />
         </div>
       </header>
 
@@ -235,7 +275,7 @@ const Index = () => {
                   <h2 className="text-xl font-semibold text-foreground">Candidates</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {mockCandidates.length - currentCandidateIndex} candidates remaining
+                  {candidatesList.length - currentCandidateIndex} candidates remaining
                 </p>
               </div>
 
@@ -244,7 +284,17 @@ const Index = () => {
                 onSwipeRight={handleCandidateSwipeRight}
                 key={`candidate-${currentCandidateIndex}`}
               >
-                <CandidateCard {...currentCandidate} />
+                <CandidateCard 
+                  name={currentCandidate.full_name || currentCandidate.name}
+                  title={currentCandidate.job_title || currentCandidate.title}
+                  location={currentCandidate.location || "Not specified"}
+                  experience={currentCandidate.experience || "Not specified"}
+                  education={currentCandidate.education || "Not specified"}
+                  email={currentCandidate.email}
+                  bio={currentCandidate.bio || ""}
+                  skills={currentCandidate.skills || []}
+                  avatar={currentCandidate.avatar_url || currentCandidate.avatar}
+                />
               </SwipeCard>
 
               <SwipeButtons onReject={handleCandidateSwipeLeft} onAccept={handleCandidateSwipeRight} />
