@@ -72,7 +72,9 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           company: string | null
+          company_logo: string | null
           created_at: string
+          education: string | null
           email: string
           experience: string | null
           full_name: string | null
@@ -81,6 +83,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           phone: string | null
+          salary_range: string | null
           skills: string[] | null
           updated_at: string
         }
@@ -88,7 +91,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
+          company_logo?: string | null
           created_at?: string
+          education?: string | null
           email: string
           experience?: string | null
           full_name?: string | null
@@ -97,6 +102,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           phone?: string | null
+          salary_range?: string | null
           skills?: string[] | null
           updated_at?: string
         }
@@ -104,7 +110,9 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           company?: string | null
+          company_logo?: string | null
           created_at?: string
+          education?: string | null
           email?: string
           experience?: string | null
           full_name?: string | null
@@ -113,6 +121,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           phone?: string | null
+          salary_range?: string | null
           skills?: string[] | null
           updated_at?: string
         }

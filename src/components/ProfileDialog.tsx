@@ -35,6 +35,9 @@ export const ProfileDialog = ({ open, onOpenChange, userRole, onProfileUpdate }:
     job_title: "",
     company: "",
     experience: "",
+    education: "",
+    company_logo: "",
+    salary_range: "",
     skills: [] as string[],
     avatar_url: "",
   });
@@ -69,6 +72,9 @@ export const ProfileDialog = ({ open, onOpenChange, userRole, onProfileUpdate }:
           job_title: profileData.job_title || "",
           company: profileData.company || "",
           experience: profileData.experience || "",
+          education: profileData.education || "",
+          company_logo: profileData.company_logo || "",
+          salary_range: profileData.salary_range || "",
           skills: profileData.skills || [],
           avatar_url: profileData.avatar_url || "",
         });
@@ -157,6 +163,9 @@ export const ProfileDialog = ({ open, onOpenChange, userRole, onProfileUpdate }:
           job_title: profile.job_title,
           company: profile.company,
           experience: profile.experience,
+          education: profile.education,
+          company_logo: profile.company_logo,
+          salary_range: profile.salary_range,
           skills: profile.skills,
         })
         .eq("id", user.id);
@@ -296,24 +305,33 @@ export const ProfileDialog = ({ open, onOpenChange, userRole, onProfileUpdate }:
               <div className="space-y-2">
                 <Label htmlFor="job_title">
                   <Briefcase className="w-4 h-4 inline mr-2" />
-                  Current/Desired Job Title
+                  Current Position / Looking For
                 </Label>
                 <Input
                   id="job_title"
                   value={profile.job_title}
                   onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
-                  placeholder="e.g., Software Engineer"
+                  placeholder="e.g., Senior React Developer"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="experience">Experience</Label>
-                <Textarea
+                <Label htmlFor="experience">Years of Experience</Label>
+                <Input
                   id="experience"
                   value={profile.experience}
                   onChange={(e) => setProfile({ ...profile, experience: e.target.value })}
-                  placeholder="Describe your work experience..."
-                  rows={4}
+                  placeholder="e.g., 5 years"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="education">Education / Degree</Label>
+                <Input
+                  id="education"
+                  value={profile.education}
+                  onChange={(e) => setProfile({ ...profile, education: e.target.value })}
+                  placeholder="e.g., B.S. Computer Science"
                 />
               </div>
 
@@ -356,6 +374,20 @@ export const ProfileDialog = ({ open, onOpenChange, userRole, onProfileUpdate }:
           {userRole === "recruiter" && (
             <>
               <div className="space-y-2">
+                <Label htmlFor="job_title">
+                  <Briefcase className="w-4 h-4 inline mr-2" />
+                  Position Looking For
+                </Label>
+                <Input
+                  id="job_title"
+                  value={profile.job_title}
+                  onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
+                  placeholder="e.g., Senior React Developer"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="company">
                   <Building className="w-4 h-4 inline mr-2" />
                   Company Name
@@ -364,21 +396,63 @@ export const ProfileDialog = ({ open, onOpenChange, userRole, onProfileUpdate }:
                   id="company"
                   value={profile.company}
                   onChange={(e) => setProfile({ ...profile, company: e.target.value })}
-                  placeholder="Your company name"
+                  placeholder="Company name"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="job_title">
-                  <Briefcase className="w-4 h-4 inline mr-2" />
-                  Job Title
-                </Label>
+                <Label htmlFor="company_logo">Company Logo URL</Label>
                 <Input
-                  id="job_title"
-                  value={profile.job_title}
-                  onChange={(e) => setProfile({ ...profile, job_title: e.target.value })}
-                  placeholder="e.g., HR Manager"
+                  id="company_logo"
+                  type="url"
+                  value={profile.company_logo}
+                  onChange={(e) => setProfile({ ...profile, company_logo: e.target.value })}
+                  placeholder="https://example.com/logo.png"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="salary_range">Salary Range</Label>
+                <Input
+                  id="salary_range"
+                  value={profile.salary_range}
+                  onChange={(e) => setProfile({ ...profile, salary_range: e.target.value })}
+                  placeholder="e.g., $80k - $120k"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="skills">Required Skills</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="skills"
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddSkill())}
+                    placeholder="Add required skill..."
+                  />
+                  <Button type="button" onClick={handleAddSkill}>
+                    Add
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {profile.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm flex items-center gap-2"
+                    >
+                      {skill}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSkill(skill)}
+                        className="text-primary/60 hover:text-primary"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
               </div>
             </>
           )}

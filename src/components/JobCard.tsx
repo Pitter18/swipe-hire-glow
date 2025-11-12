@@ -4,9 +4,9 @@ import { Badge } from "@/components/ui/badge";
 interface JobCardProps {
   title: string;
   company: string;
+  companyLogo?: string;
   location: string;
   salary: string;
-  type: string;
   description: string;
   skills: string[];
   postedTime: string;
@@ -15,9 +15,9 @@ interface JobCardProps {
 export const JobCard = ({
   title,
   company,
+  companyLogo,
   location,
   salary,
-  type,
   description,
   skills,
   postedTime,
@@ -25,9 +25,18 @@ export const JobCard = ({
   return (
     <div className="w-full h-[600px] rounded-3xl gradient-card border border-border shadow-card overflow-hidden">
       <div className="h-32 gradient-primary relative">
-        <div className="absolute bottom-4 left-6 right-6">
-          <h2 className="text-2xl font-bold text-white mb-1">{title}</h2>
-          <p className="text-white/90 text-lg">{company}</p>
+        <div className="absolute bottom-4 left-6 right-6 flex items-end gap-4">
+          {companyLogo && (
+            <img 
+              src={companyLogo} 
+              alt={company} 
+              className="w-16 h-16 rounded-lg bg-card object-cover border-2 border-card"
+            />
+          )}
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-white mb-1">{title}</h2>
+            <p className="text-white/90 text-lg">{company}</p>
+          </div>
         </div>
       </div>
       
@@ -40,10 +49,6 @@ export const JobCard = ({
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <DollarSign className="w-4 h-4" />
             <span>{salary}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Briefcase className="w-4 h-4" />
-            <span>{type}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="w-4 h-4" />

@@ -25,6 +25,7 @@ const Index = () => {
     person: any;
   } | null>(null);
   const [candidates, setCandidates] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -43,9 +44,10 @@ const Index = () => {
         
         if (roleData) {
           setUserRole(roleData.role as "job_seeker" | "recruiter");
-          // Load real candidates if user is a recruiter
           if (roleData.role === "recruiter") {
             loadCandidates();
+          } else {
+            loadJobs();
           }
         }
       } else {
@@ -71,6 +73,8 @@ const Index = () => {
             setUserRole(roleData.role as "job_seeker" | "recruiter");
             if (roleData.role === "recruiter") {
               loadCandidates();
+            } else {
+              loadJobs();
             }
           }
         }, 0);
@@ -82,62 +86,115 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Real-time profile sync
+  useEffect(() => {
+    if (!user || !userRole) return;
+
+    const channel = supabase
+      .channel("profiles-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+        },
+        (payload) => {
+          console.log("Profile updated:", payload);
+          if (userRole === "recruiter") {
+            loadCandidates();
+          } else {
+            loadJobs();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, userRole]);
+
   const loadCandidates = async () => {
     try {
-      // Get all job seekers' profiles
-      const { data: jobSeekers } = await supabase
-        .from("user_roles")
-        .select("user_id")
-        .eq("role", "job_seeker");
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*, user_roles!inner(role)")
+        .eq("user_roles.role", "job_seeker")
+        .not("id", "eq", user?.id);
 
-      if (jobSeekers && jobSeekers.length > 0) {
-        const userIds = jobSeekers.map((js) => js.user_id);
-        
-        const { data: profiles } = await supabase
-          .from("profiles")
-          .select("*")
-          .in("id", userIds);
+      if (error) throw error;
 
-        if (profiles && profiles.length > 0) {
-          setCandidates(profiles);
-        } else {
-          // Fallback to mock data if no profiles exist
-          setCandidates(mockCandidates);
-        }
+      if (profiles && profiles.length > 0) {
+        setCandidates(profiles);
       } else {
-        // Fallback to mock data if no job seekers exist
         setCandidates(mockCandidates);
       }
     } catch (error) {
       console.error("Error loading candidates:", error);
-      // Fallback to mock data on error
       setCandidates(mockCandidates);
     }
   };
 
+  const loadJobs = async () => {
+    try {
+      const { data: profiles, error } = await supabase
+        .from("profiles")
+        .select("*, user_roles!inner(role)")
+        .eq("user_roles.role", "recruiter")
+        .not("id", "eq", user?.id);
+
+      if (error) throw error;
+
+      if (profiles && profiles.length > 0) {
+        const formattedJobs = profiles.map((profile) => ({
+          id: profile.id,
+          title: profile.job_title || "Position Available",
+          company: profile.company || "Company",
+          companyLogo: profile.company_logo,
+          location: profile.location || "Location not specified",
+          salary: profile.salary_range || "Competitive",
+          description: profile.bio || "No description available",
+          skills: profile.skills || [],
+          postedTime: new Date(profile.updated_at).toLocaleDateString(),
+        }));
+        setJobs(formattedJobs);
+      } else {
+        setJobs(mockJobs);
+      }
+    } catch (error) {
+      console.error("Error loading jobs:", error);
+      setJobs(mockJobs);
+    }
+  };
+
   const handleJobSwipeLeft = () => {
+    const jobsList = jobs.length > 0 ? jobs : mockJobs;
     toast({
       title: "Passed",
       description: "Job skipped",
       variant: "destructive",
     });
-    setCurrentJobIndex((prev) => (prev + 1) % mockJobs.length);
+    setCurrentJobIndex((prev) => (prev + 1) % jobsList.length);
   };
 
   const handleJobSwipeRight = async () => {
-    // Create a match with a mock recruiter (in real app, this would be the job poster)
+    // Create a match with a recruiter
+    const jobsList = jobs.length > 0 ? jobs : mockJobs;
     if (user) {
+      const currentJob = jobsList[currentJobIndex];
+      const recruiterId = currentJob.id || String(currentJob.id);
+      
       const { data, error } = await supabase
         .from("matches")
         .insert([{
-          recruiter_id: String(mockJobs[currentJobIndex].id),
+          recruiter_id: recruiterId,
           job_seeker_id: user.id,
         }])
         .select()
         .single();
 
       if (!error && data) {
-        const currentJob = mockJobs[currentJobIndex];
         setMatchData({
           matchId: data.id,
           person: {
@@ -150,16 +207,17 @@ const Index = () => {
         setShowMatchDialog(true);
       }
     }
-    setCurrentJobIndex((prev) => (prev + 1) % mockJobs.length);
+    setCurrentJobIndex((prev) => (prev + 1) % jobsList.length);
   };
 
   const handleCandidateSwipeLeft = () => {
+    const candidatesList = candidates.length > 0 ? candidates : mockCandidates;
     toast({
       title: "Passed",
       description: "Candidate skipped",
       variant: "destructive",
     });
-    setCurrentCandidateIndex((prev) => (prev + 1) % mockCandidates.length);
+    setCurrentCandidateIndex((prev) => (prev + 1) % candidatesList.length);
   };
 
   const handleCandidateSwipeRight = async () => {
@@ -194,7 +252,8 @@ const Index = () => {
     setCurrentCandidateIndex((prev) => (prev + 1) % candidatesList.length);
   };
 
-  const currentJob = mockJobs[currentJobIndex];
+  const jobsList = jobs.length > 0 ? jobs : mockJobs;
+  const currentJob = jobsList[currentJobIndex];
   const candidatesList = candidates.length > 0 ? candidates : mockCandidates;
   const currentCandidate = candidatesList[currentCandidateIndex];
 
@@ -260,7 +319,13 @@ const Index = () => {
           <AccountMenu 
             userEmail={user?.email} 
             userRole={userRole}
-            onProfileUpdate={loadCandidates}
+            onProfileUpdate={() => {
+              if (userRole === "recruiter") {
+                loadCandidates();
+              } else {
+                loadJobs();
+              }
+            }}
           />
         </div>
       </header>
@@ -291,6 +356,7 @@ const Index = () => {
                   experience={currentCandidate.experience || "Not specified"}
                   education={currentCandidate.education || "Not specified"}
                   email={currentCandidate.email}
+                  linkedin={currentCandidate.linkedin_url}
                   bio={currentCandidate.bio || ""}
                   skills={currentCandidate.skills || []}
                   avatar={currentCandidate.avatar_url || currentCandidate.avatar}
@@ -313,7 +379,7 @@ const Index = () => {
                   <h2 className="text-xl font-semibold text-foreground">Jobs for You</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {mockJobs.length - currentJobIndex} jobs remaining
+                  {jobsList.length - currentJobIndex} jobs remaining
                 </p>
               </div>
 
