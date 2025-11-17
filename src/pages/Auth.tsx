@@ -3,14 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Sparkles, Briefcase, Users } from "lucide-react";
+import { Sparkles, ChevronLeft } from "lucide-react";
+import { Step1BasicInfo, Step2ProfileDetails, Step3AdditionalInfo } from "@/components/auth/SignupSteps";
+import { ProfilePreview } from "@/components/auth/ProfilePreview";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [currentStep, setCurrentStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -144,251 +146,207 @@ const Auth = () => {
     }
   };
 
+  const totalSteps = 4;
+  const progress = (currentStep / totalSteps) * 100;
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const canProceedStep1 = fullName && email && password.length >= 6;
+  const canProceedStep2 = role === "seeker" 
+    ? jobTitle && location && experience && education
+    : jobTitle && location && company && salaryRange;
+  const canProceedStep3 = bio && skills.length > 0;
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-4">
-          <div className="flex justify-center">
-            <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-glow">
-              <Sparkles className="w-7 h-7 text-white" />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-6xl grid md:grid-cols-2 gap-6">
+        <Card className="w-full">
+          <CardHeader className="space-y-4">
+            <div className="flex justify-center">
+              <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-glow">
+                <Sparkles className="w-7 h-7 text-white" />
+              </div>
             </div>
-          </div>
-          <CardTitle className="text-2xl text-center">
-            {isLogin ? "Welcome Back" : "Create Account"}
-          </CardTitle>
-          <CardDescription className="text-center">
-            {isLogin
-              ? "Sign in to continue to JobSwipe"
-              : "Sign up to start matching jobs and candidates"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
+            <CardTitle className="text-2xl text-center">
+              {isLogin ? "Welcome Back" : "Create Account"}
+            </CardTitle>
+            <CardDescription className="text-center">
+              {isLogin
+                ? "Sign in to continue to JobSwipe"
+                : `Step ${currentStep} of ${totalSteps}: ${
+                    currentStep === 1 ? "Basic Information" :
+                    currentStep === 2 ? "Profile Details" :
+                    currentStep === 3 ? "Additional Info" :
+                    "Review & Complete"
+                  }`}
+            </CardDescription>
             {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-3">
-                  <Label>I am a</Label>
-                  <RadioGroup value={role} onValueChange={(value: "seeker" | "recruiter") => setRole(value)}>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer">
-                      <RadioGroupItem value="seeker" id="seeker" />
-                      <Label htmlFor="seeker" className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Briefcase className="w-4 h-4" />
-                        Job Seeker
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-accent cursor-pointer">
-                      <RadioGroupItem value="recruiter" id="recruiter" />
-                      <Label htmlFor="recruiter" className="flex items-center gap-2 cursor-pointer flex-1">
-                        <Users className="w-4 h-4" />
-                        Recruiter
-                      </Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="jobTitle">{role === "seeker" ? "Current Position / Looking For" : "Position Looking For"}</Label>
-                  <Input
-                    id="jobTitle"
-                    type="text"
-                    placeholder={role === "seeker" ? "Senior Developer" : "Full Stack Developer"}
-                    value={jobTitle}
-                    onChange={(e) => setJobTitle(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {role === "recruiter" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="company">Company Name</Label>
-                    <Input
-                      id="company"
-                      type="text"
-                      placeholder="Acme Inc"
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      required
+              <Progress value={progress} className="h-2" />
+            )}
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleAuth} className="space-y-4">
+              {!isLogin ? (
+                <>
+                  {currentStep === 1 && (
+                    <Step1BasicInfo
+                      fullName={fullName}
+                      setFullName={setFullName}
+                      email={email}
+                      setEmail={setEmail}
+                      password={password}
+                      setPassword={setPassword}
+                      role={role}
+                      setRole={setRole}
                     />
-                  </div>
-                )}
+                  )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    type="text"
-                    placeholder="San Francisco, CA"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    required
-                  />
-                </div>
-
-                {role === "seeker" ? (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="experience">Years of Experience</Label>
-                      <Input
-                        id="experience"
-                        type="text"
-                        placeholder="5 years"
-                        value={experience}
-                        onChange={(e) => setExperience(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="education">Degree</Label>
-                      <Input
-                        id="education"
-                        type="text"
-                        placeholder="Bachelor's in Computer Science"
-                        value={education}
-                        onChange={(e) => setEducation(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="linkedinUrl">LinkedIn URL</Label>
-                      <Input
-                        id="linkedinUrl"
-                        type="url"
-                        placeholder="https://linkedin.com/in/yourprofile"
-                        value={linkedinUrl}
-                        onChange={(e) => setLinkedinUrl(e.target.value)}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    <Label htmlFor="salaryRange">Salary Range</Label>
-                    <Input
-                      id="salaryRange"
-                      type="text"
-                      placeholder="$80k - $120k"
-                      value={salaryRange}
-                      onChange={(e) => setSalaryRange(e.target.value)}
-                      required
+                  {currentStep === 2 && (
+                    <Step2ProfileDetails
+                      role={role}
+                      jobTitle={jobTitle}
+                      setJobTitle={setJobTitle}
+                      location={location}
+                      setLocation={setLocation}
+                      company={company}
+                      setCompany={setCompany}
+                      experience={experience}
+                      setExperience={setExperience}
+                      education={education}
+                      setEducation={setEducation}
+                      linkedinUrl={linkedinUrl}
+                      setLinkedinUrl={setLinkedinUrl}
+                      salaryRange={salaryRange}
+                      setSalaryRange={setSalaryRange}
                     />
-                  </div>
-                )}
+                  )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="bio">{role === "seeker" ? "About Me" : "Role Description"}</Label>
-                  <Input
-                    id="bio"
-                    type="text"
-                    placeholder={role === "seeker" ? "Tell us about yourself" : "Describe the role"}
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="skills">{role === "seeker" ? "Skills" : "Required Skills"}</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="skills"
-                      type="text"
-                      placeholder="Add a skill"
-                      value={skillInput}
-                      onChange={(e) => setSkillInput(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          if (skillInput.trim()) {
-                            setSkills([...skills, skillInput.trim()]);
-                            setSkillInput("");
-                          }
-                        }
-                      }}
+                  {currentStep === 3 && (
+                    <Step3AdditionalInfo
+                      role={role}
+                      bio={bio}
+                      setBio={setBio}
+                      skills={skills}
+                      setSkills={setSkills}
+                      skillInput={skillInput}
+                      setSkillInput={setSkillInput}
                     />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (skillInput.trim()) {
-                          setSkills([...skills, skillInput.trim()]);
-                          setSkillInput("");
-                        }
-                      }}
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  {skills.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                        >
-                          {skill}
-                          <button
-                            type="button"
-                            onClick={() => setSkills(skills.filter((_, i) => i !== index))}
-                            className="hover:text-destructive"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
+                  )}
+
+                  {currentStep === 4 && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground text-center">
+                        Review your profile preview on the right and click "Create Account" when ready.
+                      </p>
                     </div>
                   )}
-                </div>
-              </>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+
+                  <div className="flex gap-2">
+                    {currentStep > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleBack}
+                        className="flex-1"
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-2" />
+                        Back
+                      </Button>
+                    )}
+                    {currentStep < totalSteps ? (
+                      <Button
+                        type="button"
+                        onClick={handleNext}
+                        className="flex-1"
+                        disabled={
+                          (currentStep === 1 && !canProceedStep1) ||
+                          (currentStep === 2 && !canProceedStep2) ||
+                          (currentStep === 3 && !canProceedStep3)
+                        }
+                      >
+                        Next
+                      </Button>
+                    ) : (
+                      <Button type="submit" className="flex-1" disabled={loading}>
+                        {loading ? "Creating..." : "Create Account"}
+                      </Button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Loading..." : "Sign In"}
+                  </Button>
+                </>
+              )}
+            </form>
+            <div className="mt-4 text-center text-sm">
+              <button
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setCurrentStep(1);
+                }}
+                className="text-primary hover:underline"
+              >
+                {isLogin
+                  ? "Don't have an account? Sign up"
+                  : "Already have an account? Sign in"}
+              </button>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
-            </Button>
-          </form>
-          <div className="mt-4 text-center text-sm">
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-primary hover:underline"
-            >
-              {isLogin
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"}
-            </button>
+          </CardContent>
+        </Card>
+
+        {!isLogin && currentStep >= 2 && (
+          <div className="hidden md:block">
+            <ProfilePreview
+              role={role}
+              fullName={fullName}
+              jobTitle={jobTitle}
+              location={location}
+              company={company}
+              experience={experience}
+              education={education}
+              bio={bio}
+              skills={skills}
+              email={email}
+              linkedinUrl={linkedinUrl}
+              salaryRange={salaryRange}
+            />
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 };
