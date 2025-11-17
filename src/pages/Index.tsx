@@ -27,7 +27,6 @@ const Index = () => {
   } | null>(null);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -46,26 +45,6 @@ const Index = () => {
         
         if (roleData) {
           setUserRole(roleData.role as "job_seeker" | "recruiter");
-          
-          // Check if profile is complete
-          const { data: profileData } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-
-          if (profileData) {
-            // Check if profile needs completion based on role
-            const isProfileIncomplete = roleData.role === "job_seeker" 
-              ? !profileData.full_name || !profileData.job_title || !profileData.bio || 
-                !profileData.skills || profileData.skills.length === 0
-              : !profileData.full_name || !profileData.company || !profileData.job_title || 
-                !profileData.bio || !profileData.salary_range;
-            
-            if (isProfileIncomplete) {
-              setShowProfileDialog(true);
-            }
-          }
           
           if (roleData.role === "recruiter") {
             loadCandidates();
@@ -305,20 +284,6 @@ const Index = () => {
           matchId={matchData.matchId}
         />
       )}
-      
-      <ProfileDialog 
-        open={showProfileDialog}
-        onOpenChange={setShowProfileDialog}
-        userRole={userRole}
-        onProfileUpdate={() => {
-          if (userRole === "recruiter") {
-            loadCandidates();
-          } else {
-            loadJobs();
-          }
-          setShowProfileDialog(false);
-        }}
-      />
       
       <header className="px-6 py-6 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-3">
