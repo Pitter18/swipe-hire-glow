@@ -169,8 +169,8 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <div className={`w-full ${isLogin ? 'max-w-md' : 'max-w-6xl grid md:grid-cols-2'} gap-6`}>
-        <Card className="w-full">
+      <div className={`w-full ${isLogin ? 'max-w-md' : 'max-w-6xl'} ${!isLogin && 'grid md:grid-cols-2'} gap-6`}>
+        <Card className="w-full mx-auto">
           <CardHeader className="space-y-4">
             <div className="flex justify-center">
               <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-glow">
