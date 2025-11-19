@@ -15,6 +15,8 @@ interface ProfilePreviewProps {
   email: string;
   linkedinUrl: string;
   salaryRange: string;
+  avatarFile: File | null;
+  companyLogoFile: File | null;
 }
 
 export const ProfilePreview = ({
@@ -30,16 +32,24 @@ export const ProfilePreview = ({
   email,
   linkedinUrl,
   salaryRange,
+  avatarFile,
+  companyLogoFile,
 }: ProfilePreviewProps) => {
+  const avatarPreview = avatarFile ? URL.createObjectURL(avatarFile) : null;
+  const logoPreview = companyLogoFile ? URL.createObjectURL(companyLogoFile) : null;
   if (role === "seeker") {
     return (
       <Card className="p-6 space-y-4">
         <h3 className="text-lg font-semibold mb-4">Profile Preview</h3>
         
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center text-white text-2xl font-bold">
-            {fullName ? fullName.charAt(0).toUpperCase() : "?"}
-          </div>
+          {avatarPreview ? (
+            <img src={avatarPreview} alt="Profile" className="w-16 h-16 rounded-full object-cover" />
+          ) : (
+            <div className="w-16 h-16 rounded-full bg-gradient-primary flex items-center justify-center text-white text-2xl font-bold">
+              {fullName ? fullName.charAt(0).toUpperCase() : "?"}
+            </div>
+          )}
           <div>
             <h4 className="font-semibold text-lg">{fullName || "Your Name"}</h4>
             <p className="text-muted-foreground">{jobTitle || "Position"}</p>
@@ -108,6 +118,9 @@ export const ProfilePreview = ({
       <div>
         <h4 className="font-bold text-xl mb-2">{jobTitle || "Position Title"}</h4>
         <div className="flex items-center gap-2 text-muted-foreground">
+          {logoPreview && (
+            <img src={logoPreview} alt="Company" className="w-10 h-10 rounded object-cover" />
+          )}
           <Building2 className="w-4 h-4" />
           <span>{company || "Company Name"}</span>
         </div>
