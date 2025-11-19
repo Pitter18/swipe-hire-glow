@@ -33,6 +33,10 @@ const Auth = () => {
   const [company, setCompany] = useState("");
   const [salaryRange, setSalaryRange] = useState("");
   
+  // Image uploads
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [companyLogoFile, setCompanyLogoFile] = useState<File | null>(null);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -87,6 +91,43 @@ const Auth = () => {
 
         // Insert user role and profile
         if (data.user) {
+          // Upload images to storage if provided
+          let avatarUrl = null;
+          let companyLogoUrl = null;
+
+          if (role === "seeker" && avatarFile) {
+            const fileExt = avatarFile.name.split('.').pop();
+            const fileName = `${data.user.id}-${Date.now()}.${fileExt}`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('avatars')
+              .upload(fileName, avatarFile);
+
+            if (uploadError) {
+              console.error("Avatar upload error:", uploadError);
+            } else {
+              const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(fileName);
+              avatarUrl = publicUrl;
+            }
+          }
+
+          if (role === "recruiter" && companyLogoFile) {
+            const fileExt = companyLogoFile.name.split('.').pop();
+            const fileName = `${data.user.id}-logo-${Date.now()}.${fileExt}`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from('avatars')
+              .upload(fileName, companyLogoFile);
+
+            if (uploadError) {
+              console.error("Company logo upload error:", uploadError);
+            } else {
+              const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(fileName);
+              companyLogoUrl = publicUrl;
+            }
+          }
           const { error: roleError } = await supabase
             .from("user_roles")
             .insert({
@@ -110,8 +151,8 @@ const Auth = () => {
             skills: skills.length > 0 ? skills : null,
             linkedin_url: linkedinUrl || null,
             phone: null,
-            avatar_url: null,
-            company_logo: null,
+            avatar_url: avatarUrl,
+            company_logo: companyLogoUrl,
             ...(role === "seeker" ? {
               experience: experience,
               education: education,
@@ -234,6 +275,10 @@ const Auth = () => {
                       setLinkedinUrl={setLinkedinUrl}
                       salaryRange={salaryRange}
                       setSalaryRange={setSalaryRange}
+                      avatarFile={avatarFile}
+                      setAvatarFile={setAvatarFile}
+                      companyLogoFile={companyLogoFile}
+                      setCompanyLogoFile={setCompanyLogoFile}
                     />
                   )}
 
@@ -349,6 +394,8 @@ const Auth = () => {
               email={email}
               linkedinUrl={linkedinUrl}
               salaryRange={salaryRange}
+              avatarFile={avatarFile}
+              companyLogoFile={companyLogoFile}
             />
           </div>
         )}

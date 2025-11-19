@@ -89,14 +89,44 @@ interface Step2Props {
   setLinkedinUrl: (value: string) => void;
   salaryRange: string;
   setSalaryRange: (value: string) => void;
+  avatarFile: File | null;
+  setAvatarFile: (file: File | null) => void;
+  companyLogoFile: File | null;
+  setCompanyLogoFile: (file: File | null) => void;
 }
 
 export const Step2ProfileDetails = ({ 
   role, jobTitle, setJobTitle, location, setLocation, company, setCompany,
   experience, setExperience, education, setEducation, linkedinUrl, setLinkedinUrl,
-  salaryRange, setSalaryRange
+  salaryRange, setSalaryRange, avatarFile, setAvatarFile, companyLogoFile, setCompanyLogoFile
 }: Step2Props) => (
   <div className="space-y-4">
+    {role === "seeker" && (
+      <div className="space-y-2">
+        <Label htmlFor="avatar">Profile Picture</Label>
+        <Input
+          id="avatar"
+          type="file"
+          accept="image/*"
+          onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+        />
+        <p className="text-xs text-muted-foreground">Upload your profile picture</p>
+      </div>
+    )}
+
+    {role === "recruiter" && (
+      <div className="space-y-2">
+        <Label htmlFor="companyLogo">Company Logo</Label>
+        <Input
+          id="companyLogo"
+          type="file"
+          accept="image/*"
+          onChange={(e) => setCompanyLogoFile(e.target.files?.[0] || null)}
+        />
+        <p className="text-xs text-muted-foreground">Upload your company logo</p>
+      </div>
+    )}
+
     <div className="space-y-2">
       <Label htmlFor="jobTitle">{role === "seeker" ? "Current Position / Looking For" : "Position Looking For"}</Label>
       <Input
