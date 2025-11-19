@@ -7,7 +7,6 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { AccountMenu } from "@/components/AccountMenu";
 import { MatchNotification } from "@/components/MatchNotification";
 import { ProfileDialog } from "@/components/ProfileDialog";
-import { mockJobs, mockCandidates } from "@/data/mockData";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -127,14 +126,10 @@ const Index = () => {
 
       if (error) throw error;
 
-      if (profiles && profiles.length > 0) {
-        setCandidates(profiles);
-      } else {
-        setCandidates(mockCandidates);
-      }
+      setCandidates(profiles || []);
     } catch (error) {
       console.error("Error loading candidates:", error);
-      setCandidates(mockCandidates);
+      setCandidates([]);
     }
   };
 
@@ -148,43 +143,37 @@ const Index = () => {
 
       if (error) throw error;
 
-      if (profiles && profiles.length > 0) {
-        const formattedJobs = profiles.map((profile) => ({
-          id: profile.id,
-          title: profile.job_title || "Position Available",
-          company: profile.company || "Company",
-          companyLogo: profile.company_logo,
-          location: profile.location || "Location not specified",
-          salary: profile.salary_range || "Competitive",
-          description: profile.bio || "No description available",
-          skills: profile.skills || [],
-          postedTime: new Date(profile.updated_at).toLocaleDateString(),
-        }));
-        setJobs(formattedJobs);
-      } else {
-        setJobs(mockJobs);
-      }
+      const formattedJobs = (profiles || []).map((profile) => ({
+        id: profile.id,
+        title: profile.job_title || "Position Available",
+        company: profile.company || "Company",
+        companyLogo: profile.company_logo,
+        location: profile.location || "Location not specified",
+        salary: profile.salary_range || "Competitive",
+        description: profile.bio || "No description available",
+        skills: profile.skills || [],
+        postedTime: new Date(profile.updated_at).toLocaleDateString(),
+      }));
+      setJobs(formattedJobs);
     } catch (error) {
       console.error("Error loading jobs:", error);
-      setJobs(mockJobs);
+      setJobs([]);
     }
   };
 
   const handleJobSwipeLeft = () => {
-    const jobsList = jobs.length > 0 ? jobs : mockJobs;
     toast({
       title: "Passed",
       description: "Job skipped",
       variant: "destructive",
     });
-    setCurrentJobIndex((prev) => (prev + 1) % jobsList.length);
+    setCurrentJobIndex((prev) => (prev + 1) % jobs.length);
   };
 
   const handleJobSwipeRight = async () => {
     // Create a match with a recruiter
-    const jobsList = jobs.length > 0 ? jobs : mockJobs;
     if (user) {
-      const currentJob = jobsList[currentJobIndex];
+      const currentJob = jobs[currentJobIndex];
       const recruiterId = currentJob.id || String(currentJob.id);
       
       const { data, error } = await supabase
@@ -204,29 +193,28 @@ const Index = () => {
             title: currentJob.title,
             company: currentJob.company,
             skills: currentJob.skills,
+            email: "contact@company.com",
           },
         });
         setShowMatchDialog(true);
       }
     }
-    setCurrentJobIndex((prev) => (prev + 1) % jobsList.length);
+    setCurrentJobIndex((prev) => (prev + 1) % jobs.length);
   };
 
   const handleCandidateSwipeLeft = () => {
-    const candidatesList = candidates.length > 0 ? candidates : mockCandidates;
     toast({
       title: "Passed",
       description: "Candidate skipped",
       variant: "destructive",
     });
-    setCurrentCandidateIndex((prev) => (prev + 1) % candidatesList.length);
+    setCurrentCandidateIndex((prev) => (prev + 1) % candidates.length);
   };
 
   const handleCandidateSwipeRight = async () => {
     // Create a match with the candidate
-    const candidatesList = candidates.length > 0 ? candidates : mockCandidates;
     if (user) {
-      const currentCandidate = candidatesList[currentCandidateIndex];
+      const currentCandidate = candidates[currentCandidateIndex];
       const candidateId = currentCandidate.id || String(currentCandidate.id);
       
       const { data, error } = await supabase
@@ -251,13 +239,11 @@ const Index = () => {
         setShowMatchDialog(true);
       }
     }
-    setCurrentCandidateIndex((prev) => (prev + 1) % candidatesList.length);
+    setCurrentCandidateIndex((prev) => (prev + 1) % candidates.length);
   };
 
-  const jobsList = jobs.length > 0 ? jobs : mockJobs;
-  const currentJob = jobsList[currentJobIndex];
-  const candidatesList = candidates.length > 0 ? candidates : mockCandidates;
-  const currentCandidate = candidatesList[currentCandidateIndex];
+  const currentJob = jobs[currentJobIndex];
+  const currentCandidate = candidates[currentCandidateIndex];
 
   if (loading || !userRole) {
     return (
@@ -342,36 +328,56 @@ const Index = () => {
                   <h2 className="text-xl font-semibold text-foreground">Candidates</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {candidatesList.length - currentCandidateIndex} candidates remaining
+                  {candidates.length - currentCandidateIndex} candidates remaining
                 </p>
               </div>
 
-              <SwipeCard
-                onSwipeLeft={handleCandidateSwipeLeft}
-                onSwipeRight={handleCandidateSwipeRight}
-                key={`candidate-${currentCandidateIndex}`}
-              >
-                <CandidateCard 
-                  name={currentCandidate.full_name || currentCandidate.name}
-                  title={currentCandidate.job_title || currentCandidate.title}
-                  location={currentCandidate.location || "Not specified"}
-                  experience={currentCandidate.experience || "Not specified"}
-                  education={currentCandidate.education || "Not specified"}
-                  email={currentCandidate.email}
-                  linkedin={currentCandidate.linkedin_url}
-                  bio={currentCandidate.bio || ""}
-                  skills={currentCandidate.skills || []}
-                  avatar={currentCandidate.avatar_url || currentCandidate.avatar}
-                />
-              </SwipeCard>
+              {candidates.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Candidates Yet</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Check back later when job seekers start creating profiles!
+                  </p>
+                </div>
+              ) : currentCandidate ? (
+                <>
+                  <SwipeCard
+                    onSwipeLeft={handleCandidateSwipeLeft}
+                    onSwipeRight={handleCandidateSwipeRight}
+                    key={`candidate-${currentCandidateIndex}`}
+                  >
+                    <CandidateCard 
+                      name={currentCandidate.full_name || currentCandidate.name}
+                      title={currentCandidate.job_title || currentCandidate.title}
+                      location={currentCandidate.location || "Not specified"}
+                      experience={currentCandidate.experience || "Not specified"}
+                      education={currentCandidate.education || "Not specified"}
+                      email={currentCandidate.email}
+                      linkedin={currentCandidate.linkedin_url}
+                      bio={currentCandidate.bio || ""}
+                      skills={currentCandidate.skills || []}
+                      avatar={currentCandidate.avatar_url || currentCandidate.avatar}
+                    />
+                  </SwipeCard>
 
-              <SwipeButtons onReject={handleCandidateSwipeLeft} onAccept={handleCandidateSwipeRight} />
+                  <SwipeButtons onReject={handleCandidateSwipeLeft} onAccept={handleCandidateSwipeRight} />
 
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Swipe right to shortlist • Swipe left to pass
-                </p>
-              </div>
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Swipe right to shortlist • Swipe left to pass
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">All Done!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    You've reviewed all available candidates.
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -381,25 +387,45 @@ const Index = () => {
                   <h2 className="text-xl font-semibold text-foreground">Jobs for You</h2>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {jobsList.length - currentJobIndex} jobs remaining
+                  {jobs.length - currentJobIndex} jobs remaining
                 </p>
               </div>
 
-              <SwipeCard
-                onSwipeLeft={handleJobSwipeLeft}
-                onSwipeRight={handleJobSwipeRight}
-                key={`job-${currentJobIndex}`}
-              >
-                <JobCard {...currentJob} />
-              </SwipeCard>
+              {jobs.length === 0 ? (
+                <div className="text-center py-12">
+                  <Briefcase className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No Jobs Yet</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Check back later when recruiters start posting jobs!
+                  </p>
+                </div>
+              ) : currentJob ? (
+                <>
+                  <SwipeCard
+                    onSwipeLeft={handleJobSwipeLeft}
+                    onSwipeRight={handleJobSwipeRight}
+                    key={`job-${currentJobIndex}`}
+                  >
+                    <JobCard {...currentJob} />
+                  </SwipeCard>
 
-              <SwipeButtons onReject={handleJobSwipeLeft} onAccept={handleJobSwipeRight} />
+                  <SwipeButtons onReject={handleJobSwipeLeft} onAccept={handleJobSwipeRight} />
 
-              <div className="mt-6 text-center">
-                <p className="text-sm text-muted-foreground">
-                  Swipe right to match • Swipe left to pass
-                </p>
-              </div>
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Swipe right to match • Swipe left to pass
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <Briefcase className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">All Done!</h3>
+                  <p className="text-sm text-muted-foreground">
+                    You've reviewed all available jobs.
+                  </p>
+                </div>
+              )}
             </>
           )}
         </div>
