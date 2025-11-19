@@ -99,7 +99,7 @@ const Auth = () => {
             throw new Error("Failed to set user role. Please try again.");
           }
 
-          // Update profile with all fields
+          // Upsert profile with all fields
           const profileData = {
             id: data.user.id,
             email: email,
@@ -109,19 +109,25 @@ const Auth = () => {
             bio: bio,
             skills: skills.length > 0 ? skills : null,
             linkedin_url: linkedinUrl || null,
+            phone: null,
+            avatar_url: null,
+            company_logo: null,
             ...(role === "seeker" ? {
               experience: experience,
               education: education,
+              company: null,
+              salary_range: null,
             } : {
               company: company,
               salary_range: salaryRange,
+              experience: null,
+              education: null,
             })
           };
 
           const { error: profileError } = await supabase
             .from("profiles")
-            .update(profileData)
-            .eq("id", data.user.id);
+            .upsert(profileData, { onConflict: 'id' });
 
           if (profileError) {
             console.error("Profile update error:", profileError);
