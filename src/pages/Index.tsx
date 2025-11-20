@@ -118,6 +118,15 @@ const Index = () => {
 
   const loadCandidates = async () => {
     try {
+      // Get current recruiter's skills
+      const { data: recruiterProfile } = await supabase
+        .from("profiles")
+        .select("skills")
+        .eq("id", user?.id)
+        .single();
+
+      const recruiterSkills = recruiterProfile?.skills || [];
+
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*, user_roles!inner(role)")
@@ -126,7 +135,13 @@ const Index = () => {
 
       if (error) throw error;
 
-      setCandidates(profiles || []);
+      // Filter candidates who have at least one matching skill
+      const matchedCandidates = (profiles || []).filter((candidate) => {
+        const candidateSkills = candidate.skills || [];
+        return candidateSkills.some((skill: string) => recruiterSkills.includes(skill));
+      });
+
+      setCandidates(matchedCandidates);
     } catch (error) {
       console.error("Error loading candidates:", error);
       setCandidates([]);
@@ -135,6 +150,15 @@ const Index = () => {
 
   const loadJobs = async () => {
     try {
+      // Get current candidate's skills
+      const { data: candidateProfile } = await supabase
+        .from("profiles")
+        .select("skills")
+        .eq("id", user?.id)
+        .single();
+
+      const candidateSkills = candidateProfile?.skills || [];
+
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*, user_roles!inner(role)")
@@ -143,7 +167,13 @@ const Index = () => {
 
       if (error) throw error;
 
-      const formattedJobs = (profiles || []).map((profile) => ({
+      // Filter recruiters who are looking for at least one skill the candidate has
+      const matchedProfiles = (profiles || []).filter((recruiter) => {
+        const recruiterSkills = recruiter.skills || [];
+        return recruiterSkills.some((skill: string) => candidateSkills.includes(skill));
+      });
+
+      const formattedJobs = matchedProfiles.map((profile) => ({
         id: profile.id,
         title: profile.job_title || "Position Available",
         company: profile.company || "Company",
