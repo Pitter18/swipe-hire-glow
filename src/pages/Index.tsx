@@ -26,6 +26,7 @@ const Index = () => {
   } | null>(null);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [minSkillMatches, setMinSkillMatches] = useState(1);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -88,6 +89,7 @@ const Index = () => {
   }, [navigate]);
 
   // Real-time profile sync
+  // Real-time profile sync
   useEffect(() => {
     if (!user || !userRole) return;
 
@@ -116,6 +118,17 @@ const Index = () => {
     };
   }, [user, userRole]);
 
+  // Reload when skill filter changes
+  useEffect(() => {
+    if (!user || !userRole) return;
+    
+    if (userRole === "recruiter") {
+      loadCandidates();
+    } else {
+      loadJobs();
+    }
+  }, [minSkillMatches]);
+
   const loadCandidates = async () => {
     try {
       // Get current recruiter's skills
@@ -135,10 +148,11 @@ const Index = () => {
 
       if (error) throw error;
 
-      // Filter candidates who have at least one matching skill
+      // Filter candidates based on minimum skill matches
       const matchedCandidates = (profiles || []).filter((candidate) => {
         const candidateSkills = candidate.skills || [];
-        return candidateSkills.some((skill: string) => recruiterSkills.includes(skill));
+        const matchCount = candidateSkills.filter((skill: string) => recruiterSkills.includes(skill)).length;
+        return matchCount >= minSkillMatches;
       });
 
       setCandidates(matchedCandidates);
@@ -167,10 +181,11 @@ const Index = () => {
 
       if (error) throw error;
 
-      // Filter recruiters who are looking for at least one skill the candidate has
+      // Filter recruiters based on minimum skill matches
       const matchedProfiles = (profiles || []).filter((recruiter) => {
         const recruiterSkills = recruiter.skills || [];
-        return recruiterSkills.some((skill: string) => candidateSkills.includes(skill));
+        const matchCount = recruiterSkills.filter((skill: string) => candidateSkills.includes(skill)).length;
+        return matchCount >= minSkillMatches;
       });
 
       const formattedJobs = matchedProfiles.map((profile) => ({
@@ -311,6 +326,21 @@ const Index = () => {
           </h1>
         </div>
         <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label htmlFor="skill-filter" className="text-sm text-muted-foreground hidden sm:inline">
+              Min. Skills:
+            </label>
+            <select
+              id="skill-filter"
+              value={minSkillMatches}
+              onChange={(e) => setMinSkillMatches(Number(e.target.value))}
+              className="px-3 py-1.5 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value={1}>1+ match</option>
+              <option value={2}>2+ matches</option>
+              <option value={3}>3+ matches</option>
+            </select>
+          </div>
           <Button
             variant="ghost"
             size="sm"
