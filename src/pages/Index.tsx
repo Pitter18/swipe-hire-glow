@@ -140,10 +140,19 @@ const Index = () => {
 
       const recruiterSkills = recruiterProfile?.skills || [];
 
+      // Get all job seeker user IDs
+      const { data: jobSeekerRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "job_seeker");
+
+      const jobSeekerIds = jobSeekerRoles?.map(r => r.user_id) || [];
+
+      // Get profiles for job seekers
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("*, user_roles!inner(role)")
-        .eq("user_roles.role", "job_seeker")
+        .select("*")
+        .in("id", jobSeekerIds)
         .not("id", "eq", user?.id);
 
       if (error) throw error;
@@ -173,10 +182,19 @@ const Index = () => {
 
       const candidateSkills = candidateProfile?.skills || [];
 
+      // Get all recruiter user IDs
+      const { data: recruiterRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "recruiter");
+
+      const recruiterIds = recruiterRoles?.map(r => r.user_id) || [];
+
+      // Get profiles for recruiters
       const { data: profiles, error } = await supabase
         .from("profiles")
-        .select("*, user_roles!inner(role)")
-        .eq("user_roles.role", "recruiter")
+        .select("*")
+        .in("id", recruiterIds)
         .not("id", "eq", user?.id);
 
       if (error) throw error;
