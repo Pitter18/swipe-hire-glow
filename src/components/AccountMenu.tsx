@@ -128,12 +128,12 @@ export const AccountMenu = ({ userEmail, userRole, onProfileUpdate }: AccountMen
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuContent align="end" className="w-48 md:w-56">
           <DropdownMenuLabel>
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{userName}</p>
+              <p className="text-xs md:text-sm font-medium leading-none truncate">{userName}</p>
               {userEmail && (
-                <p className="text-xs leading-none text-muted-foreground">{userEmail}</p>
+                <p className="text-[10px] md:text-xs leading-none text-muted-foreground truncate">{userEmail}</p>
               )}
             </div>
           </DropdownMenuLabel>
