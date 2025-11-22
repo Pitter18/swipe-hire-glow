@@ -222,32 +222,68 @@ const Index = () => {
   };
 
   const handleJobSwipeRight = async () => {
-    // Create a match with a recruiter
     if (user) {
       const currentJob = jobs[currentJobIndex];
-      const recruiterId = currentJob.id || String(currentJob.id);
+      const recruiterId = currentJob.id;
       
-      const { data, error } = await supabase
-        .from("matches")
-        .insert([{
-          recruiter_id: recruiterId,
-          job_seeker_id: user.id,
-        }])
-        .select()
-        .single();
-
-      if (!error && data) {
-        setMatchData({
-          matchId: data.id,
-          person: {
-            name: currentJob.company,
-            title: currentJob.title,
-            company: currentJob.company,
-            skills: currentJob.skills,
-            email: "contact@company.com",
-          },
+      try {
+        // Step 1: Insert the swipe
+        const { error: swipeError } = await supabase
+          .from("swipes")
+          .insert({
+            swiper_id: user.id,
+            swiped_id: recruiterId,
+          });
+        
+        if (swipeError && !swipeError.message.includes('duplicate')) {
+          throw swipeError;
+        }
+        
+        // Step 2: Check if recruiter has already swiped right on this job seeker
+        const { data: mutualSwipe } = await supabase
+          .from("swipes")
+          .select("*")
+          .eq("swiper_id", recruiterId)
+          .eq("swiped_id", user.id)
+          .maybeSingle();
+        
+        // Step 3: If mutual swipe exists, create a match
+        if (mutualSwipe) {
+          const { data: matchData, error: matchError } = await supabase
+            .from("matches")
+            .insert({
+              recruiter_id: recruiterId,
+              job_seeker_id: user.id,
+            })
+            .select()
+            .maybeSingle();
+          
+          if (!matchError && matchData) {
+            setMatchData({
+              matchId: matchData.id,
+              person: {
+                name: currentJob.company,
+                title: currentJob.title,
+                company: currentJob.company,
+                skills: currentJob.skills,
+                email: "contact@company.com",
+              },
+            });
+            setShowMatchDialog(true);
+          }
+        } else {
+          toast({
+            title: "Liked!",
+            description: "They'll be notified if they like you back",
+          });
+        }
+      } catch (error) {
+        console.error("Error processing swipe:", error);
+        toast({
+          title: "Error",
+          description: "Failed to process swipe",
+          variant: "destructive",
         });
-        setShowMatchDialog(true);
       }
     }
     setCurrentJobIndex((prev) => (prev + 1) % jobs.length);
@@ -263,31 +299,67 @@ const Index = () => {
   };
 
   const handleCandidateSwipeRight = async () => {
-    // Create a match with the candidate
     if (user) {
       const currentCandidate = candidates[currentCandidateIndex];
-      const candidateId = currentCandidate.id || String(currentCandidate.id);
+      const candidateId = currentCandidate.id;
       
-      const { data, error } = await supabase
-        .from("matches")
-        .insert([{
-          recruiter_id: user.id,
-          job_seeker_id: candidateId,
-        }])
-        .select()
-        .single();
-
-      if (!error && data) {
-        setMatchData({
-          matchId: data.id,
-          person: {
-            name: currentCandidate.full_name || currentCandidate.name,
-            title: currentCandidate.job_title || currentCandidate.title,
-            email: currentCandidate.email,
-            skills: currentCandidate.skills || [],
-          },
+      try {
+        // Step 1: Insert the swipe
+        const { error: swipeError } = await supabase
+          .from("swipes")
+          .insert({
+            swiper_id: user.id,
+            swiped_id: candidateId,
+          });
+        
+        if (swipeError && !swipeError.message.includes('duplicate')) {
+          throw swipeError;
+        }
+        
+        // Step 2: Check if candidate has already swiped right on this recruiter
+        const { data: mutualSwipe } = await supabase
+          .from("swipes")
+          .select("*")
+          .eq("swiper_id", candidateId)
+          .eq("swiped_id", user.id)
+          .maybeSingle();
+        
+        // Step 3: If mutual swipe exists, create a match
+        if (mutualSwipe) {
+          const { data: matchData, error: matchError } = await supabase
+            .from("matches")
+            .insert({
+              recruiter_id: user.id,
+              job_seeker_id: candidateId,
+            })
+            .select()
+            .maybeSingle();
+          
+          if (!matchError && matchData) {
+            setMatchData({
+              matchId: matchData.id,
+              person: {
+                name: currentCandidate.full_name || currentCandidate.name,
+                title: currentCandidate.job_title || currentCandidate.title,
+                email: currentCandidate.email,
+                skills: currentCandidate.skills || [],
+              },
+            });
+            setShowMatchDialog(true);
+          }
+        } else {
+          toast({
+            title: "Liked!",
+            description: "They'll be notified if they like you back",
+          });
+        }
+      } catch (error) {
+        console.error("Error processing swipe:", error);
+        toast({
+          title: "Error",
+          description: "Failed to process swipe",
+          variant: "destructive",
         });
-        setShowMatchDialog(true);
       }
     }
     setCurrentCandidateIndex((prev) => (prev + 1) % candidates.length);
