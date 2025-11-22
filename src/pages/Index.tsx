@@ -117,6 +117,59 @@ const Index = () => {
     };
   }, [user, userRole]);
 
+  // Real-time match notifications
+  useEffect(() => {
+    if (!user || !userRole) return;
+
+    const matchChannel = supabase
+      .channel("matches-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "matches",
+          filter: userRole === "recruiter" 
+            ? `recruiter_id=eq.${user.id}` 
+            : `job_seeker_id=eq.${user.id}`,
+        },
+        async (payload) => {
+          console.log("New match detected:", payload);
+          const newMatch = payload.new as any;
+          
+          // Fetch the other person's profile
+          const otherUserId = userRole === "recruiter" 
+            ? newMatch.job_seeker_id 
+            : newMatch.recruiter_id;
+          
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", otherUserId)
+            .single();
+          
+          if (profile) {
+            setMatchData({
+              matchId: newMatch.id,
+              person: {
+                name: profile.full_name || profile.email,
+                title: profile.job_title,
+                company: profile.company,
+                skills: profile.skills || [],
+                email: profile.email,
+              },
+            });
+            setShowMatchDialog(true);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(matchChannel);
+    };
+  }, [user, userRole]);
+
   const loadCandidates = async (userId: string) => {
     try {
       if (!userId) {
