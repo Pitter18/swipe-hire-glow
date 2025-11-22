@@ -32,6 +32,34 @@ const Chat = () => {
       }
       setCurrentUserId(user.id);
 
+      // Verify match exists and user is part of it
+      const { data: match, error: matchError } = await supabase
+        .from("matches")
+        .select("*")
+        .eq("id", matchId)
+        .single();
+
+      if (matchError || !match) {
+        toast({
+          title: "Invalid Match",
+          description: "This chat does not exist or you don't have access to it.",
+          variant: "destructive",
+        });
+        navigate("/matches");
+        return;
+      }
+
+      // Check if user is part of this match
+      if (match.recruiter_id !== user.id && match.job_seeker_id !== user.id) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have access to this chat.",
+          variant: "destructive",
+        });
+        navigate("/matches");
+        return;
+      }
+
       // Fetch messages
       const { data: messagesData } = await supabase
         .from("messages")
