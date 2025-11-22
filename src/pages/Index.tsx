@@ -46,9 +46,9 @@ const Index = () => {
           setUserRole(roleData.role as "job_seeker" | "recruiter");
           
           if (roleData.role === "recruiter") {
-            loadCandidates();
+            await loadCandidates(session.user.id);
           } else {
-            loadJobs();
+            await loadJobs(session.user.id);
           }
         }
       } else {
@@ -73,9 +73,9 @@ const Index = () => {
           if (roleData) {
             setUserRole(roleData.role as "job_seeker" | "recruiter");
             if (roleData.role === "recruiter") {
-              loadCandidates();
+              await loadCandidates(session.user.id);
             } else {
-              loadJobs();
+              await loadJobs(session.user.id);
             }
           }
         }, 0);
@@ -87,7 +87,6 @@ const Index = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Real-time profile sync
   // Real-time profile sync
   useEffect(() => {
     if (!user || !userRole) return;
@@ -103,10 +102,11 @@ const Index = () => {
         },
         (payload) => {
           console.log("Profile updated:", payload);
+          if (!user?.id) return;
           if (userRole === "recruiter") {
-            loadCandidates();
+            loadCandidates(user.id);
           } else {
-            loadJobs();
+            loadJobs(user.id);
           }
         }
       )
@@ -117,10 +117,10 @@ const Index = () => {
     };
   }, [user, userRole]);
 
-  const loadCandidates = async () => {
+  const loadCandidates = async (userId: string) => {
     try {
-      if (!user?.id) {
-        console.log("No user ID available");
+      if (!userId) {
+        console.log("No user ID provided to loadCandidates");
         return;
       }
 
@@ -136,7 +136,7 @@ const Index = () => {
         return;
       }
 
-      const jobSeekerIds = jobSeekerRoles.map(r => r.user_id).filter(id => id !== user.id);
+      const jobSeekerIds = jobSeekerRoles.map(r => r.user_id).filter(id => id !== userId);
 
       if (jobSeekerIds.length === 0) {
         console.log("No other job seekers available");
@@ -159,10 +159,10 @@ const Index = () => {
     }
   };
 
-  const loadJobs = async () => {
+  const loadJobs = async (userId: string) => {
     try {
-      if (!user?.id) {
-        console.log("No user ID available");
+      if (!userId) {
+        console.log("No user ID provided to loadJobs");
         return;
       }
 
@@ -178,7 +178,7 @@ const Index = () => {
         return;
       }
 
-      const recruiterIds = recruiterRoles.map(r => r.user_id).filter(id => id !== user.id);
+      const recruiterIds = recruiterRoles.map(r => r.user_id).filter(id => id !== userId);
 
       if (recruiterIds.length === 0) {
         console.log("No other recruiters available");
@@ -359,10 +359,11 @@ const Index = () => {
             userEmail={user?.email} 
             userRole={userRole}
             onProfileUpdate={() => {
+              if (!user?.id) return;
               if (userRole === "recruiter") {
-                loadCandidates();
+                loadCandidates(user.id);
               } else {
-                loadJobs();
+                loadJobs(user.id);
               }
             }}
           />
