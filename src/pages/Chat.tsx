@@ -12,6 +12,7 @@ interface Message {
   sender_id: string;
   content: string;
   created_at: string;
+  read: boolean;
 }
 
 const Chat = () => {
@@ -69,6 +70,18 @@ const Chat = () => {
 
       if (messagesData) {
         setMessages(messagesData);
+        
+        // Mark all messages from other user as read
+        const unreadMessages = messagesData.filter(
+          (msg) => msg.sender_id !== user.id && !msg.read
+        );
+        
+        if (unreadMessages.length > 0) {
+          await supabase
+            .from("messages")
+            .update({ read: true })
+            .in("id", unreadMessages.map(msg => msg.id));
+        }
       }
     };
 
