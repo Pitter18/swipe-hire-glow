@@ -271,7 +271,7 @@ const Index = () => {
       description: "Job skipped",
       variant: "destructive",
     });
-    setCurrentJobIndex((prev) => (prev + 1) % jobs.length);
+    setCurrentJobIndex((prev) => prev + 1);
   };
 
   const handleJobSwipeRight = async () => {
@@ -339,7 +339,7 @@ const Index = () => {
         });
       }
     }
-    setCurrentJobIndex((prev) => (prev + 1) % jobs.length);
+    setCurrentJobIndex((prev) => prev + 1);
   };
 
   const handleCandidateSwipeLeft = () => {
@@ -348,7 +348,7 @@ const Index = () => {
       description: "Candidate skipped",
       variant: "destructive",
     });
-    setCurrentCandidateIndex((prev) => (prev + 1) % candidates.length);
+    setCurrentCandidateIndex((prev) => prev + 1);
   };
 
   const handleCandidateSwipeRight = async () => {
@@ -415,7 +415,7 @@ const Index = () => {
         });
       }
     }
-    setCurrentCandidateIndex((prev) => (prev + 1) % candidates.length);
+    setCurrentCandidateIndex((prev) => prev + 1);
   };
 
   const currentJob = jobs[currentJobIndex];
