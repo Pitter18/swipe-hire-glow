@@ -9,10 +9,12 @@ import { MatchNotification } from "@/components/MatchNotification";
 import { ProfileDialog } from "@/components/ProfileDialog";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/logo.png";
 
 const Index = () => {
@@ -30,6 +32,7 @@ const Index = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const unreadCount = useUnreadMessages(user?.id);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -466,10 +469,18 @@ const Index = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate("/matches")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 relative"
           >
             <MessageCircle className="w-5 h-5" />
             <span className="hidden sm:inline">Matches</span>
+            {unreadCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-1 text-xs"
+              >
+                {unreadCount}
+              </Badge>
+            )}
           </Button>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             {isRecruiter ? (
