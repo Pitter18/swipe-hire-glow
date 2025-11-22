@@ -358,9 +358,9 @@ Helper Hooks:
 
 This architecture creates a **real-time, responsive job matching platform** where:
 
-- ✅ Users can swipe through profiles
-- ✅ Mutual swipes create instant matches
-- ✅ Matched users can chat in real-time
-- ✅ All updates happen live across devices
-- ✅ Unread message counts update automatically
-- ✅ Matched profiles are filtered out from swipe queue
+✅ Users can swipe through profiles
+✅ Mutual swipes create instant matches
+✅ Matched users can chat in real-time
+✅ All updates happen live across devices
+✅ Unread message counts update automatically
+✅ Matched profiles are filtered out from swipe queue
