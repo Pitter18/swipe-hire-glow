@@ -427,10 +427,15 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-glow mx-auto mb-4 animate-pulse">
-            <Sparkles className="w-7 h-7 text-white" />
+          <div className="relative mx-auto mb-4">
+            <img 
+              src={logo} 
+              alt="SwipeHire" 
+              className="w-20 h-20 rounded-2xl animate-[scale-in_0.5s_ease-out,pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]" 
+            />
+            <div className="absolute inset-0 rounded-2xl shadow-glow animate-pulse"></div>
           </div>
-          <p className="text-muted-foreground">Loading...</p>
+          <p className="text-muted-foreground animate-fade-in">Loading...</p>
         </div>
       </div>
     );
