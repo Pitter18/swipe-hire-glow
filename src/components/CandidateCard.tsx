@@ -35,7 +35,7 @@ export const CandidateCard = ({
 
   return (
     <div className="w-full h-[600px] rounded-3xl gradient-card border border-border shadow-card overflow-hidden">
-      <div className="h-40 gradient-primary relative">
+      <div className="h-40 gradient-primary relative sticky top-0 z-10">
         <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
           <Avatar className="w-24 h-24 border-4 border-card shadow-glow">
             <AvatarImage src={avatar} alt={name} />
