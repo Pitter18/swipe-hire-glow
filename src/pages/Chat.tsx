@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { Footer } from "@/components/Footer";
 import { ArrowLeft, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -165,7 +166,7 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </main>
 
-      <footer className="px-4 py-4 border-t border-border">
+      <div className="px-4 py-4 border-t border-border">
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
             value={newMessage}
@@ -177,7 +178,8 @@ const Chat = () => {
             <Send className="w-5 h-5" />
           </Button>
         </form>
-      </footer>
+      </div>
+      <Footer />
     </div>
   );
 };

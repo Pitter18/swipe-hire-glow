@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, ChevronLeft } from "lucide-react";
 import { Step1BasicInfo, Step2ProfileDetails, Step3AdditionalInfo } from "@/components/auth/SignupSteps";
@@ -400,6 +401,7 @@ const Auth = () => {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 };
