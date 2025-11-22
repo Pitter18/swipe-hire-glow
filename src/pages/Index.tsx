@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { AccountMenu } from "@/components/AccountMenu";
 import { MatchNotification } from "@/components/MatchNotification";
 import { ProfileDialog } from "@/components/ProfileDialog";
+import { Footer } from "@/components/Footer";
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -639,6 +640,7 @@ const Index = () => {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 };
