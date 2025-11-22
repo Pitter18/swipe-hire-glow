@@ -550,9 +550,25 @@ const Index = () => {
                 <div className="text-center py-12">
                   <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">All Done!</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mb-4">
                     You've reviewed all available candidates.
                   </p>
+                  <Button
+                    onClick={async () => {
+                      if (!user?.id) return;
+                      setCurrentCandidateIndex(0);
+                      await loadCandidates(user.id);
+                      toast({
+                        title: "Refreshed",
+                        description: "Checking for new candidates...",
+                      });
+                    }}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Check for New Candidates
+                  </Button>
                 </div>
               )}
             </>
@@ -598,9 +614,25 @@ const Index = () => {
                 <div className="text-center py-12">
                   <Briefcase className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">All Done!</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mb-4">
                     You've reviewed all available jobs.
                   </p>
+                  <Button
+                    onClick={async () => {
+                      if (!user?.id) return;
+                      setCurrentJobIndex(0);
+                      await loadJobs(user.id);
+                      toast({
+                        title: "Refreshed",
+                        description: "Checking for new jobs...",
+                      });
+                    }}
+                    variant="outline"
+                    className="mt-4"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Check for New Jobs
+                  </Button>
                 </div>
               )}
             </>
