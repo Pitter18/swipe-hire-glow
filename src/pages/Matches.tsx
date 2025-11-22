@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 
 interface Match {
@@ -11,6 +12,7 @@ interface Match {
   job_seeker_id: string;
   created_at: string;
   otherUserEmail?: string;
+  unreadCount?: number;
 }
 
 const Matches = () => {
@@ -35,7 +37,7 @@ const Matches = () => {
         .order("created_at", { ascending: false });
 
       if (matchesData) {
-        // Fetch other user's email for each match
+        // Fetch other user's email and unread count for each match
         const matchesWithEmails = await Promise.all(
           matchesData.map(async (match) => {
             const otherUserId =
@@ -49,9 +51,18 @@ const Matches = () => {
               .eq("id", otherUserId)
               .single();
 
+            // Get unread message count for this match
+            const { count: unreadCount } = await supabase
+              .from("messages")
+              .select("*", { count: "exact", head: true })
+              .eq("match_id", match.id)
+              .eq("read", false)
+              .neq("sender_id", user.id);
+
             return {
               ...match,
               otherUserEmail: profileData?.email || "Unknown User",
+              unreadCount: unreadCount || 0,
             };
           })
         );
@@ -60,6 +71,26 @@ const Matches = () => {
     };
 
     initMatches();
+
+    // Subscribe to message changes to update unread counts in real-time
+    const channel = supabase
+      .channel("matches-messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "messages",
+        },
+        () => {
+          initMatches();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [navigate]);
 
   return (
@@ -84,18 +115,36 @@ const Matches = () => {
                 className="p-4 flex items-center justify-between hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => navigate(`/chat/${match.id}`)}
               >
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-foreground">
                     {match.otherUserEmail}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Matched on{" "}
-                    {new Date(match.created_at).toLocaleDateString()}
+                    {match.unreadCount && match.unreadCount > 0 ? (
+                      <span className="text-primary font-medium">
+                        {match.unreadCount} new {match.unreadCount === 1 ? "message" : "messages"}
+                      </span>
+                    ) : (
+                      <>
+                        Matched on{" "}
+                        {new Date(match.created_at).toLocaleDateString()}
+                      </>
+                    )}
                   </p>
                 </div>
-                <Button size="icon" variant="ghost">
-                  <MessageCircle className="w-5 h-5 text-primary" />
-                </Button>
+                <div className="relative">
+                  <Button size="icon" variant="ghost">
+                    <MessageCircle className="w-5 h-5 text-primary" />
+                  </Button>
+                  {match.unreadCount && match.unreadCount > 0 && (
+                    <Badge 
+                      variant="destructive" 
+                      className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-1 text-xs"
+                    >
+                      {match.unreadCount}
+                    </Badge>
+                  )}
+                </div>
               </Card>
             ))}
           </div>
