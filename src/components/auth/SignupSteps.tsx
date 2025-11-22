@@ -206,7 +206,7 @@ export const Step2ProfileDetails = ({
         <Input
           id="salaryRange"
           type="text"
-          placeholder="$80k - $120k"
+          placeholder="€80k - €120k"
           value={salaryRange}
           onChange={(e) => setSalaryRange(e.target.value)}
           required
