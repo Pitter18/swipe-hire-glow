@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Sparkles, ChevronLeft } from "lucide-react";
 import { Step1BasicInfo, Step2ProfileDetails, Step3AdditionalInfo } from "@/components/auth/SignupSteps";
 import { ProfilePreview } from "@/components/auth/ProfilePreview";
+import logo from "@/assets/logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -220,9 +221,7 @@ const Auth = () => {
         <Card className="w-full mx-auto">
           <CardHeader className="space-y-4">
             <div className="flex justify-center">
-              <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-glow">
-                <Sparkles className="w-7 h-7 text-white" />
-              </div>
+              <img src={logo} alt="SwipeHire Logo" className="w-16 h-16 rounded-2xl" />
             </div>
             <CardTitle className="text-2xl text-center">
               {isLogin ? "Welcome Back" : "Create Account"}

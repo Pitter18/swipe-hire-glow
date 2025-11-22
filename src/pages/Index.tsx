@@ -13,6 +13,7 @@ import { Sparkles, Briefcase, Users, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 const Index = () => {
   const [currentJobIndex, setCurrentJobIndex] = useState(0);
@@ -450,11 +451,9 @@ const Index = () => {
       
       <header className="px-6 py-6 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center shadow-glow">
-            <Sparkles className="w-6 h-6 text-white" />
-          </div>
+          <img src={logo} alt="SwipeHire Logo" className="w-10 h-10 rounded-xl" />
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            JobSwipe
+            SwipeHire
           </h1>
         </div>
         <div className="flex items-center gap-4">
