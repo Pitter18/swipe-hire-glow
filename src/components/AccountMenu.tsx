@@ -46,6 +46,33 @@ export const AccountMenu = ({ userEmail, userRole, onProfileUpdate }: AccountMen
     };
 
     loadProfile();
+
+    // Set up real-time subscription for profile changes
+    const channel = supabase
+      .channel("profile-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+        },
+        (payload) => {
+          const updatedProfile = payload.new as any;
+          // Update only if it's the current user's profile
+          supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user && updatedProfile.id === user.id) {
+              setProfilePhoto(userRole === "job_seeker" ? updatedProfile.avatar_url : updatedProfile.company_logo);
+              setUserName(updatedProfile.full_name || updatedProfile.email);
+            }
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userRole]);
 
   const handleLogout = async () => {
@@ -71,7 +98,23 @@ export const AccountMenu = ({ userEmail, userRole, onProfileUpdate }: AccountMen
         open={showProfileDialog}
         onOpenChange={setShowProfileDialog}
         userRole={userRole}
-        onProfileUpdate={onProfileUpdate}
+        onProfileUpdate={() => {
+          // Reload profile data when updated
+          supabase.auth.getUser().then(async ({ data: { user } }) => {
+            if (!user) return;
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("avatar_url, company_logo, full_name, email")
+              .eq("id", user.id)
+              .single();
+            if (profile) {
+              setProfilePhoto(userRole === "job_seeker" ? profile.avatar_url : profile.company_logo);
+              setUserName(profile.full_name || profile.email);
+            }
+          });
+          // Call parent's onProfileUpdate if provided
+          if (onProfileUpdate) onProfileUpdate();
+        }}
       />
       
       <DropdownMenu>
