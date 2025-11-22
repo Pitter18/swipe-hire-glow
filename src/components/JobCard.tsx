@@ -24,7 +24,7 @@ export const JobCard = ({
 }: JobCardProps) => {
   return (
     <div className="w-full h-[600px] rounded-3xl gradient-card border border-border shadow-card overflow-hidden">
-      <div className="h-32 gradient-primary relative sticky top-0 z-10">
+      <div className="h-32 gradient-primary relative">
         <div className="absolute bottom-4 left-6 right-6 flex items-end gap-4">
           {companyLogo && (
             <img 
