@@ -418,7 +418,7 @@ export const ProfileDialog = ({ open, onOpenChange, userRole, onProfileUpdate }:
                   id="salary_range"
                   value={profile.salary_range}
                   onChange={(e) => setProfile({ ...profile, salary_range: e.target.value })}
-                  placeholder="e.g., $80k - $120k"
+                  placeholder="e.g., €80k - €120k"
                 />
               </div>
 

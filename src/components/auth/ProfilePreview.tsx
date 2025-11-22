@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Briefcase, GraduationCap, Mail, Linkedin, Building2, DollarSign } from "lucide-react";
+import { MapPin, Briefcase, GraduationCap, Mail, Linkedin, Building2, Euro } from "lucide-react";
 
 interface ProfilePreviewProps {
   role: "seeker" | "recruiter";
@@ -135,7 +135,7 @@ export const ProfilePreview = ({
         )}
         {salaryRange && (
           <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-muted-foreground" />
+            <Euro className="w-4 h-4 text-muted-foreground" />
             <span>{salaryRange}</span>
           </div>
         )}

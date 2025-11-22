@@ -1,4 +1,4 @@
-import { MapPin, DollarSign, Briefcase, Clock } from "lucide-react";
+import { MapPin, Euro, Briefcase, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface JobCardProps {
@@ -47,7 +47,7 @@ export const JobCard = ({
             <span>{location}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <DollarSign className="w-4 h-4" />
+            <Euro className="w-4 h-4" />
             <span>{salary}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
