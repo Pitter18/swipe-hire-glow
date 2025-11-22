@@ -26,7 +26,6 @@ const Index = () => {
   } | null>(null);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
-  const [minSkillMatches, setMinSkillMatches] = useState(1);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -118,28 +117,8 @@ const Index = () => {
     };
   }, [user, userRole]);
 
-  // Reload when skill filter changes
-  useEffect(() => {
-    if (!user || !userRole) return;
-    
-    if (userRole === "recruiter") {
-      loadCandidates();
-    } else {
-      loadJobs();
-    }
-  }, [minSkillMatches]);
-
   const loadCandidates = async () => {
     try {
-      // Get current recruiter's skills
-      const { data: recruiterProfile } = await supabase
-        .from("profiles")
-        .select("skills")
-        .eq("id", user?.id)
-        .single();
-
-      const recruiterSkills = recruiterProfile?.skills || [];
-
       // Get all job seeker user IDs
       const { data: jobSeekerRoles } = await supabase
         .from("user_roles")
@@ -157,14 +136,7 @@ const Index = () => {
 
       if (error) throw error;
 
-      // Filter candidates based on minimum skill matches
-      const matchedCandidates = (profiles || []).filter((candidate) => {
-        const candidateSkills = candidate.skills || [];
-        const matchCount = candidateSkills.filter((skill: string) => recruiterSkills.includes(skill)).length;
-        return matchCount >= minSkillMatches;
-      });
-
-      setCandidates(matchedCandidates);
+      setCandidates(profiles || []);
     } catch (error) {
       console.error("Error loading candidates:", error);
       setCandidates([]);
@@ -173,15 +145,6 @@ const Index = () => {
 
   const loadJobs = async () => {
     try {
-      // Get current candidate's skills
-      const { data: candidateProfile } = await supabase
-        .from("profiles")
-        .select("skills")
-        .eq("id", user?.id)
-        .single();
-
-      const candidateSkills = candidateProfile?.skills || [];
-
       // Get all recruiter user IDs
       const { data: recruiterRoles } = await supabase
         .from("user_roles")
@@ -199,14 +162,7 @@ const Index = () => {
 
       if (error) throw error;
 
-      // Filter recruiters based on minimum skill matches
-      const matchedProfiles = (profiles || []).filter((recruiter) => {
-        const recruiterSkills = recruiter.skills || [];
-        const matchCount = recruiterSkills.filter((skill: string) => candidateSkills.includes(skill)).length;
-        return matchCount >= minSkillMatches;
-      });
-
-      const formattedJobs = matchedProfiles.map((profile) => ({
+      const formattedJobs = (profiles || []).map((profile) => ({
         id: profile.id,
         title: profile.job_title || "Position Available",
         company: profile.company || "Company",
@@ -344,21 +300,6 @@ const Index = () => {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <label htmlFor="skill-filter" className="text-sm text-muted-foreground hidden sm:inline">
-              Min. Skills:
-            </label>
-            <select
-              id="skill-filter"
-              value={minSkillMatches}
-              onChange={(e) => setMinSkillMatches(Number(e.target.value))}
-              className="px-3 py-1.5 rounded-md bg-background border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value={1}>1+ match</option>
-              <option value={2}>2+ matches</option>
-              <option value={3}>3+ matches</option>
-            </select>
-          </div>
           <Button
             variant="ghost"
             size="sm"
