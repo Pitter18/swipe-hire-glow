@@ -491,32 +491,32 @@ const Index = () => {
         />
       )}
       
-      <header className="px-6 py-6 flex items-center justify-between border-b border-border">
-        <div className="flex items-center gap-3">
-          <img src={logo} alt="SwipeHire Logo" className="w-10 h-10 rounded-xl" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+      <header className="px-3 md:px-6 py-4 md:py-6 flex items-center justify-between border-b border-border backdrop-blur-sm bg-background/95 sticky top-0 z-40">
+        <div className="flex items-center gap-2 md:gap-3">
+          <img src={logo} alt="SwipeHire Logo" className="w-8 h-8 md:w-10 md:h-10 rounded-xl" />
+          <h1 className="hidden sm:block text-lg md:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
             SwipeHire
           </h1>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/matches")}
-            className="flex items-center gap-2 relative"
+            className="flex items-center gap-2 relative px-2 md:px-3"
           >
-            <MessageCircle className="w-5 h-5" />
-            <span className="hidden sm:inline">Matches</span>
+            <MessageCircle className="w-4 h-4 md:w-5 md:h-5" />
+            <span className="hidden md:inline">Matches</span>
             {unreadCount > 0 && (
               <Badge 
                 variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 min-w-5 flex items-center justify-center p-1 text-xs"
+                className="absolute -top-1 -right-1 h-4 min-w-4 md:h-5 md:min-w-5 flex items-center justify-center p-1 text-[10px] md:text-xs"
               >
                 {unreadCount}
               </Badge>
             )}
           </Button>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
             {isRecruiter ? (
               <>
                 <Users className="w-4 h-4 text-primary" />
@@ -545,8 +545,8 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md">
+      <main className="flex-1 flex items-center justify-center px-3 md:px-4 py-4 md:py-8">
+        <div className="w-full max-w-md px-1 sm:px-0">
           {isRecruiter ? (
             <>
               <div className="mb-6 text-center">

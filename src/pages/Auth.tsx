@@ -216,19 +216,19 @@ const Auth = () => {
   const canProceedStep3 = bio && skills.length > 0;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
-      <div className={`w-full ${isLogin ? 'max-w-md' : 'max-w-6xl'} ${!isLogin && 'grid md:grid-cols-2'} gap-6`}>
-        <Card className="w-full mx-auto">
-          <CardHeader className="space-y-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-3 md:px-4 py-4 md:py-8">
+      <div className={`w-full ${isLogin ? 'max-w-md' : 'max-w-6xl'} ${!isLogin && 'grid lg:grid-cols-2'} gap-4 md:gap-6`}>
+        <Card className="w-full mx-auto shadow-lg">
+          <CardHeader className="space-y-3 md:space-y-4 p-4 md:p-6">
             <div className="flex justify-center">
-              <img src={logo} alt="SwipeHire Logo" className="w-16 h-16 rounded-2xl" />
+              <img src={logo} alt="SwipeHire Logo" className="w-12 h-12 md:w-16 md:h-16 rounded-2xl" />
             </div>
-            <CardTitle className="text-2xl text-center">
+            <CardTitle className="text-xl md:text-2xl text-center">
               {isLogin ? "Welcome Back" : "Create Account"}
             </CardTitle>
-            <CardDescription className="text-center">
+            <CardDescription className="text-xs md:text-sm text-center">
               {isLogin
-                ? "Sign in to continue to JobSwipe"
+                ? "Sign in to continue to SwipeHire"
                 : `Step ${currentStep} of ${totalSteps}: ${
                     currentStep === 1 ? "Basic Information" :
                     currentStep === 2 ? "Profile Details" :
@@ -240,8 +240,8 @@ const Auth = () => {
               <Progress value={progress} className="h-2" />
             )}
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAuth} className="space-y-4">
+          <CardContent className="p-4 md:p-6">
+            <form onSubmit={handleAuth} className="space-y-3 md:space-y-4">
               {!isLogin ? (
                 <>
                   {currentStep === 1 && (
@@ -379,7 +379,7 @@ const Auth = () => {
         </Card>
 
         {!isLogin && currentStep >= 2 && (
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <ProfilePreview
               role={role}
               fullName={fullName}

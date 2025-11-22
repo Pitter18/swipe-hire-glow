@@ -101,20 +101,20 @@ interface SwipeButtonsProps {
 
 export const SwipeButtons = ({ onReject, onAccept }: SwipeButtonsProps) => {
   return (
-    <div className="flex items-center justify-center gap-8 mt-8">
+    <div className="flex items-center justify-center gap-6 md:gap-8 mt-6 md:mt-8">
       <button
         onClick={onReject}
-        className="group relative w-16 h-16 rounded-full border-2 border-destructive bg-card hover:bg-destructive/10 transition-smooth shadow-card"
+        className="group relative w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-destructive bg-card hover:bg-destructive/10 transition-smooth shadow-card active:scale-95"
         aria-label="Reject"
       >
-        <X className="w-8 h-8 text-destructive absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform" />
+        <X className="w-7 h-7 md:w-8 md:h-8 text-destructive absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform" />
       </button>
       <button
         onClick={onAccept}
-        className="group relative w-20 h-20 rounded-full border-2 border-success bg-card hover:bg-success/10 transition-smooth shadow-glow"
+        className="group relative w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-success bg-card hover:bg-success/10 transition-smooth shadow-glow active:scale-95"
         aria-label="Accept"
       >
-        <Heart className="w-10 h-10 text-success absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform" />
+        <Heart className="w-8 h-8 md:w-10 md:h-10 text-success absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform" />
       </button>
     </div>
   );
