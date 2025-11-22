@@ -119,20 +119,36 @@ const Index = () => {
 
   const loadCandidates = async () => {
     try {
+      if (!user?.id) {
+        console.log("No user ID available");
+        return;
+      }
+
       // Get all job seeker user IDs
       const { data: jobSeekerRoles } = await supabase
         .from("user_roles")
         .select("user_id")
         .eq("role", "job_seeker");
 
-      const jobSeekerIds = jobSeekerRoles?.map(r => r.user_id) || [];
+      if (!jobSeekerRoles || jobSeekerRoles.length === 0) {
+        console.log("No job seekers found");
+        setCandidates([]);
+        return;
+      }
+
+      const jobSeekerIds = jobSeekerRoles.map(r => r.user_id).filter(id => id !== user.id);
+
+      if (jobSeekerIds.length === 0) {
+        console.log("No other job seekers available");
+        setCandidates([]);
+        return;
+      }
 
       // Get profiles for job seekers
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .in("id", jobSeekerIds)
-        .not("id", "eq", user?.id);
+        .in("id", jobSeekerIds);
 
       if (error) throw error;
 
@@ -145,20 +161,36 @@ const Index = () => {
 
   const loadJobs = async () => {
     try {
+      if (!user?.id) {
+        console.log("No user ID available");
+        return;
+      }
+
       // Get all recruiter user IDs
       const { data: recruiterRoles } = await supabase
         .from("user_roles")
         .select("user_id")
         .eq("role", "recruiter");
 
-      const recruiterIds = recruiterRoles?.map(r => r.user_id) || [];
+      if (!recruiterRoles || recruiterRoles.length === 0) {
+        console.log("No recruiters found");
+        setJobs([]);
+        return;
+      }
+
+      const recruiterIds = recruiterRoles.map(r => r.user_id).filter(id => id !== user.id);
+
+      if (recruiterIds.length === 0) {
+        console.log("No other recruiters available");
+        setJobs([]);
+        return;
+      }
 
       // Get profiles for recruiters
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .in("id", recruiterIds)
-        .not("id", "eq", user?.id);
+        .in("id", recruiterIds);
 
       if (error) throw error;
 
