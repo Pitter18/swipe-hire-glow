@@ -202,11 +202,28 @@ const Index = () => {
         return;
       }
 
+      // Get all matches where this recruiter is involved
+      const { data: matches } = await supabase
+        .from("matches")
+        .select("job_seeker_id")
+        .eq("recruiter_id", userId);
+
+      const matchedJobSeekerIds = matches?.map(m => m.job_seeker_id) || [];
+
+      // Filter out already matched candidates
+      const availableJobSeekerIds = jobSeekerIds.filter(id => !matchedJobSeekerIds.includes(id));
+
+      if (availableJobSeekerIds.length === 0) {
+        console.log("No unmatched job seekers available");
+        setCandidates([]);
+        return;
+      }
+
       // Get profiles for job seekers
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .in("id", jobSeekerIds);
+        .in("id", availableJobSeekerIds);
 
       if (error) throw error;
 
@@ -244,11 +261,28 @@ const Index = () => {
         return;
       }
 
+      // Get all matches where this job seeker is involved
+      const { data: matches } = await supabase
+        .from("matches")
+        .select("recruiter_id")
+        .eq("job_seeker_id", userId);
+
+      const matchedRecruiterIds = matches?.map(m => m.recruiter_id) || [];
+
+      // Filter out already matched recruiters
+      const availableRecruiterIds = recruiterIds.filter(id => !matchedRecruiterIds.includes(id));
+
+      if (availableRecruiterIds.length === 0) {
+        console.log("No unmatched recruiters available");
+        setJobs([]);
+        return;
+      }
+
       // Get profiles for recruiters
       const { data: profiles, error } = await supabase
         .from("profiles")
         .select("*")
-        .in("id", recruiterIds);
+        .in("id", availableRecruiterIds);
 
       if (error) throw error;
 
