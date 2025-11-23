@@ -6,12 +6,12 @@ export const Footer = () => {
       <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
         <div className="flex flex-col items-center justify-center gap-2 md:gap-4">
           <p className="text-xs md:text-sm text-muted-foreground text-center">
-            © 2025 All rights reserved <span className="font-semibold text-foreground">Gopalkrishna Rathod</span>
+            © 2025 All rights reserved <span className="font-semibold text-foreground">GK</span>
           </p>
 
           <div className="flex items-center gap-3 md:gap-4">
             <a
-              href="https://instagram.com/yourhandle"
+              href="https://www.instagram.com/gopalkrishna.rathod20/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-smooth hover-scale"
@@ -20,7 +20,7 @@ export const Footer = () => {
               <Instagram className="w-4 h-4 md:w-5 md:h-5" />
             </a>
             <a
-              href="https://github.com/yourusername"
+              href="https://github.com/gopalkrishnarathod20"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-primary transition-smooth hover-scale"
