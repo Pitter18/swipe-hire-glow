@@ -4,8 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CandidateCard } from "@/components/CandidateCard";
+import { JobCard } from "@/components/JobCard";
 
 interface Message {
   id: string;
@@ -22,6 +25,9 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [otherUserProfile, setOtherUserProfile] = useState<any>(null);
+  const [otherUserRole, setOtherUserRole] = useState<string>("");
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,6 +65,26 @@ const Chat = () => {
         });
         navigate("/matches");
         return;
+      }
+
+      // Get the other user's ID and fetch their profile
+      const otherUserId = match.recruiter_id === user.id ? match.job_seeker_id : match.recruiter_id;
+      
+      const { data: otherProfile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", otherUserId)
+        .single();
+
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", otherUserId)
+        .single();
+
+      if (otherProfile && roleData) {
+        setOtherUserProfile(otherProfile);
+        setOtherUserRole(roleData.role);
       }
 
       // Fetch messages
@@ -146,7 +172,17 @@ const Chat = () => {
         >
           <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
         </Button>
-        <h1 className="text-base md:text-xl font-semibold text-foreground">Chat</h1>
+        <h1 className="text-base md:text-xl font-semibold text-foreground flex-1">Chat</h1>
+        {otherUserProfile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowProfileDialog(true)}
+            className="h-8 w-8 md:h-10 md:w-10"
+          >
+            <User className="w-4 h-4 md:w-5 md:h-5" />
+          </Button>
+        )}
       </header>
 
       <main className="flex-1 overflow-y-auto px-3 md:px-4 py-4 md:py-6 space-y-3 md:space-y-4">
@@ -192,6 +228,40 @@ const Chat = () => {
           </Button>
         </form>
       </div>
+
+      <Dialog open={showProfileDialog} onOpenChange={setShowProfileDialog}>
+        <DialogContent className="max-w-md md:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Profile Details</DialogTitle>
+          </DialogHeader>
+          {otherUserProfile && otherUserRole === "job_seeker" && (
+            <CandidateCard
+              name={otherUserProfile.full_name || "Unknown"}
+              title={otherUserProfile.job_title || "No title"}
+              location={otherUserProfile.location || "No location"}
+              experience={otherUserProfile.experience || "No experience"}
+              education={otherUserProfile.education || "No education"}
+              email={otherUserProfile.email}
+              linkedin={otherUserProfile.linkedin_url}
+              bio={otherUserProfile.bio || "No bio available"}
+              skills={otherUserProfile.skills || []}
+              avatar={otherUserProfile.avatar_url}
+            />
+          )}
+          {otherUserProfile && otherUserRole === "recruiter" && (
+            <JobCard
+              title={otherUserProfile.job_title || "No position"}
+              company={otherUserProfile.company || "No company"}
+              location={otherUserProfile.location || "No location"}
+              salary={otherUserProfile.salary_range || "Not specified"}
+              postedTime={new Date(otherUserProfile.updated_at).toLocaleDateString()}
+              description={otherUserProfile.bio || "No description"}
+              skills={otherUserProfile.skills || []}
+              companyLogo={otherUserProfile.company_logo}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
