@@ -172,7 +172,9 @@ const Chat = () => {
         >
           <ArrowLeft className="w-4 h-4 md:w-5 md:h-5" />
         </Button>
-        <h1 className="text-base md:text-xl font-semibold text-foreground flex-1">Chat</h1>
+        <h1 className="text-base md:text-xl font-semibold text-foreground flex-1 truncate">
+          {otherUserProfile?.full_name || "Chat"}
+        </h1>
         {otherUserProfile && (
           <Button
             variant="ghost"

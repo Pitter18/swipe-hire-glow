@@ -11,7 +11,7 @@ interface Match {
   recruiter_id: string;
   job_seeker_id: string;
   created_at: string;
-  otherUserEmail?: string;
+  otherUserName?: string;
   unreadCount?: number;
 }
 
@@ -47,7 +47,7 @@ const Matches = () => {
             
             const { data: profileData } = await supabase
               .from("profiles")
-              .select("email")
+              .select("full_name, email")
               .eq("id", otherUserId)
               .single();
 
@@ -61,7 +61,7 @@ const Matches = () => {
 
             return {
               ...match,
-              otherUserEmail: profileData?.email || "Unknown User",
+              otherUserName: profileData?.full_name || profileData?.email || "Unknown User",
               unreadCount: unreadCount || 0,
             };
           })
@@ -117,7 +117,7 @@ const Matches = () => {
               >
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-sm md:text-base text-foreground truncate">
-                    {match.otherUserEmail}
+                    {match.otherUserName}
                   </h3>
                   <p className="text-xs md:text-sm text-muted-foreground">
                     {match.unreadCount && match.unreadCount > 0 ? (
